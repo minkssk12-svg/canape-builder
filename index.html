@@ -112,6 +112,40 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:18px;
 #gHelper{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:6px}
 #gHelper span{font-size:12.5px;border-radius:999px;padding:2px 8px;border:1px dashed #B8C2B9;color:#7A867C}
 #gHelper span.ok{border-style:solid;border-color:var(--dark);color:var(--dark);background:#EAF2E4}
+.sectionTitle{font-size:26px;margin:26px 0 0}
+.miniCard{background:#FBF7EE;border-color:#CDBFA8}
+#toast{position:fixed;left:50%;top:18px;transform:translate(-50%,-80px);background:#22402C;color:#fff;font-family:'Jua',sans-serif;font-size:22px;padding:10px 22px;border-radius:999px;z-index:80;transition:transform .3s;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+#toast.show{transform:translate(-50%,0)}
+.stampGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-top:14px}
+.stamp{background:#fff;border:2px solid #E3DBCC;border-radius:18px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
+.stamp svg{width:84px;height:84px}
+.stamp b{font-family:'Jua',sans-serif;font-weight:400;font-size:18px}
+.stamp span{font-size:13px;color:var(--body)}
+.stamp.on{border-color:#C9A13F;background:#FFFBEF}
+.stamp.on svg{transform:rotate(-12deg)}
+#sortField{position:relative;height:min(56vh,460px);background:linear-gradient(#F7F3EA,#EFE9DE);border:2px solid #CDBFA8;border-radius:22px;overflow:hidden;touch-action:none}
+#sortItem{position:absolute;top:0;left:50%;width:110px;display:flex;flex-direction:column;align-items:center;cursor:grab;touch-action:none}
+#sortItem svg{width:96px;height:96px;filter:drop-shadow(0 6px 4px rgba(0,0,0,.2))}
+#sortItem b{font-family:'Jua',sans-serif;font-weight:400;font-size:20px;background:#fff;border-radius:999px;padding:2px 12px;border:2px solid #CDBFA8;white-space:nowrap}
+#sortItem.wrong{animation:shake .3s}
+.sortMsg{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font-family:'Jua',sans-serif;font-size:20px;background:#fff;border-radius:999px;padding:6px 16px;opacity:0;transition:opacity .2s;white-space:nowrap;max-width:96%;overflow:hidden;text-overflow:ellipsis}
+.sortMsg.show{opacity:1}.sortMsg.good{color:#2F6B2F}.sortMsg.bad{color:var(--warn)}
+#sortBaskets{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:10px}
+.basket{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;background:#fff;border:2px solid #CDBFA8;font-size:15px;line-height:1.2;min-height:96px}
+.basket svg{width:100%;max-width:110px}
+.basket.hit{background:#EAF2E4;border-color:var(--dark)}
+.seqWrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:12px}
+@media (max-width:860px){.seqWrap{grid-template-columns:1fr}}
+.slot{display:flex;align-items:center;gap:10px;background:#fff;border:2px dashed #CDBFA8;border-radius:14px;padding:8px 12px;margin-bottom:8px;min-height:52px;font-family:'Jua',sans-serif;font-size:20px}
+.slot .n{width:32px;height:32px;border-radius:50%;background:#E3DBCC;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 32px}
+.slot.done{border-style:solid;border-color:var(--dark);background:#EAF2E4}
+.slot.done .n{background:var(--dark);color:#fff}
+#seqCards{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start}
+.seqCard{font-size:20px;padding:14px 18px;background:#FFFDF6;border:2px solid #CDBFA8;box-shadow:0 3px 0 #CDBFA8}
+.seqCard.used{opacity:.3}
+.seqCard.shake{animation:shake .35s;border-color:var(--warn)}
+@keyframes shake{0%,100%{translate:0}25%{translate:-6px}75%{translate:6px}}
+#seqTip{font-size:18px;line-height:1.5;background:var(--paper);border-radius:14px;padding:12px 14px;margin-top:10px;min-height:52px}
 .serveBtn{display:flex;align-items:center;justify-content:center;gap:8px;font-size:22px}
 .serveBtn svg{width:28px;height:28px}
 </style>
@@ -174,6 +208,25 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:18px;
     <div class="shopTop"><h2 style="font-size:32px">카나페 가게</h2><div style="display:flex;gap:10px;align-items:center"><span class="wallet" id="walletMenu"></span><button class="primary" id="openShop">상점</button></div></div>
     <p class="hint" style="font-size:17px;margin:6px 0 0">주문서를 보고 재료 통에서 크래커, 소스, 토핑을 도마로 끌어다 놓아 카나페를 만들어요. 틀리게 내면 5초가 줄어들어요! 번 코인은 상점에서 쓸 수 있어요.</p>
     <div class="stages" id="stageList"></div>
+    <h2 class="sectionTitle">미니게임 · 도장판</h2>
+    <div class="stages" id="miniList"></div>
+  </div>
+  <div class="wrap hidden" id="gSort">
+    <div class="shopTop"><h2 style="font-size:30px">식품군 분류 타임어택</h2><div style="display:flex;gap:8px;align-items:center"><span class="pill" id="sortScore"></span><span class="pill" id="sortTime"></span><button id="sortQuit">그만하기</button></div></div>
+    <p class="hint" style="font-size:16px;margin:6px 0 8px">떨어지는 재료를 맞는 식품군 바구니로 끌어다 넣거나, 바구니를 눌러요. 틀리면 2초가 줄어요!</p>
+    <div class="timebar" id="sortTimeBar"><div></div></div>
+    <div id="sortField"><div id="sortItem"></div><div class="sortMsg" id="sortMsg"></div></div>
+    <div id="sortBaskets"></div>
+  </div>
+  <div class="wrap hidden" id="gSeq">
+    <div class="shopTop"><h2 style="font-size:30px" id="seqTitle"></h2><div style="display:flex;gap:8px;align-items:center"><span class="pill" id="seqTime">0초</span><button id="seqQuit">그만하기</button></div></div>
+    <div id="seqTip"></div>
+    <div class="seqWrap"><div id="seqSlots"></div><div id="seqCards"></div></div>
+  </div>
+  <div class="wrap hidden" id="gStamps">
+    <div class="shopTop"><h2 style="font-size:30px">도장판 <span class="pill" id="stampCount" style="font-size:18px;vertical-align:middle"></span></h2><button id="stampBack">가게로 돌아가기</button></div>
+    <p class="hint" style="font-size:16px;margin:6px 0 0">게임에서 목표를 이루면 도장을 받아요. 모두 모아 볼까요?</p>
+    <div class="stampGrid" id="stampGrid"></div>
   </div>
   <div class="wrap hidden" id="gShop">
     <div class="shopTop"><h2 style="font-size:32px">상점</h2><div style="display:flex;gap:10px;align-items:center"><span class="wallet" id="walletShop"></span><button id="closeShop">가게로 돌아가기</button></div></div>
@@ -215,6 +268,7 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:18px;
 </div>
 
 <div id="ghost"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
 <div class="modal" id="done" role="dialog" aria-modal="true" aria-label="완성 카드">
   <div class="card">
@@ -530,7 +584,7 @@ function makeCard(){
     img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
   });
 }
-$('finish').onclick=async()=>{ st.sel=-1; render(); $('doneImg').src=await makeCard(); $('done').classList.add('show'); };
+$('finish').onclick=async()=>{ st.sel=-1; render(); if (groupsOf(st).size===5) stampGive('five'); $('doneImg').src=await makeCard(); $('done').classList.add('show'); };
 $('close').onclick=()=>$('done').classList.remove('show');
 $('save').onclick=()=>{ const a=document.createElement('a'); a.href=cardURL; a.download=(($('cname').value.trim()||'카나페')+'.png'); a.click(); };
 $('reset').onclick=()=>{ if(!confirm('모두 지우고 처음부터 다시 만들까요?')) return; Object.assign(st,{base:'square',spread:'none',items:[],sel:-1,per:2,mem:4}); $('who').value=''; $('cname').value=''; render(); };
@@ -625,8 +679,18 @@ const store={ get(){ try{ return Object.assign({},memStars,JSON.parse(localStora
               set(v){ memStars=v; try{ localStorage.setItem('canapeStars',JSON.stringify(v)); }catch(e){} } };
 const g = {stage:0, queue:[], order:null, served:0, coins:0, timeLeft:0, timer:null, base:null, spread:'none', items:[], mood:'wait', fbT:null};
 
+function hideAllGameViews(){ ['gMenu','gShop','gPlay','gSort','gSeq','gStamps'].forEach(id=>$(id).classList.add('hidden')); }
+function stopMinis(){ if (typeof sortS!=='undefined'){ sortS.on=false; cancelAnimationFrame(sortS.raf); } if (typeof seqS!=='undefined') clearInterval(seqS.timer); clearInterval(g.timer); }
+function renderMiniList(){
+  const n=(shop.stamps||[]).length;
+  $('miniList').innerHTML = `<button class="stageCard miniCard" id="sortCard"><span class="num">미니게임</span><h3>식품군 분류 타임어택</h3><p>30초 동안 떨어지는 재료를 5가지 식품군 바구니에 넣어요.</p><span class="stars">최고 기록 ${shop.sortBest||0}개</span></button>`
+   + `<button class="stageCard miniCard" id="seqCard"><span class="num">미니게임</span><h3>위생·안전 순서 맞추기</h3><p>실습 전 준비부터 정리까지, 해야 할 일을 순서대로 골라요.</p><span class="stars">내일 실습 준비!</span></button>`
+   + `<button class="stageCard miniCard" id="stampCard"><span class="num">모으기</span><h3>도장판</h3><p>게임 목표를 이루면 도장을 받아요.</p><span class="stars">${n} / ${STAMPS.length}개</span></button>`;
+  $('sortCard').onclick=startSort; $('seqCard').onclick=startSeq; $('stampCard').onclick=showStamps;
+}
 function showMenu(){
-  $('gMenu').classList.remove('hidden'); $('gPlay').classList.add('hidden'); $('gShop').classList.add('hidden'); $('walletMenu').innerHTML=walletHTML(); applyDecor();
+  stopMinis(); hideAllGameViews(); $('gMenu').classList.remove('hidden'); $('walletMenu').innerHTML=walletHTML(); applyDecor();
+  renderMiniList();
   const stars=store.get();
   $('stageList').innerHTML = STAGES.map((S,i)=>{
     const locked = i>0 && !stars[i-1], sc=stars[i]||0;
@@ -675,7 +739,7 @@ function renderShop(){
   }).join('');
   $('shopGrid').querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{
     const it=SHOP.find(x=>x.id===b.dataset.buy); if (shop.wallet<it.price) return;
-    shop.wallet-=it.price; shop.owned.push(it.id);
+    shop.wallet-=it.price; shop.owned.push(it.id); stampGive('shop');
     if (it.board) shop.equip.board=it.board; if (it.id==='blue') shop.equip.wall='blue';
     shopSave(); applyDecor(); renderShop();
   });
@@ -687,7 +751,7 @@ function renderShop(){
   });
   $('shopGrid').querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>{ shop.on[b.dataset.toggle] = shop.on[b.dataset.toggle]===false; shopSave(); renderShop(); });
 }
-function openShop(){ $('gMenu').classList.add('hidden'); $('gShop').classList.remove('hidden'); renderShop(); }
+function openShop(){ hideAllGameViews(); $('gShop').classList.remove('hidden'); renderShop(); }
 const earn = n => Math.round(n*(perk('regular')?1.2:1));
 const startBonus = () => perk('time') ? 10 : 0;
 const penalty = () => perk('glove') ? 3 : 5;
@@ -704,16 +768,18 @@ function endlessPick(){
   return o;
 }
 function startEndless(){
+  g.mode='endless';
   Object.assign(g,{endless:true, stage:5, served:0, coins:0, combo:0, timeLeft:ENDLESS_MAX+startBonus(), maxTime:ENDLESS_MAX+startBonus(), order:null});
-  $('gMenu').classList.add('hidden'); $('gPlay').classList.remove('hidden'); $('gEnd').classList.remove('show');
+  hideAllGameViews(); $('gPlay').classList.remove('hidden'); $('gEnd').classList.remove('show');
   $('gStageName').textContent='무한 모드 · 레벨 1';
   nextOrder(); clearInterval(g.timer); g.timer=setInterval(tick,100);
 }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
 function startStage(i){
   const S=STAGES[i]; let q=shuffle(S.pool()); while(q.length<S.goal) q=q.concat(shuffle(S.pool()));
+  g.mode='stage';
   Object.assign(g,{endless:false, stage:i, queue:q.slice(0,S.goal), served:0, coins:0, timeLeft:S.time+startBonus(), maxTime:S.time+startBonus()});
-  $('gMenu').classList.add('hidden'); $('gPlay').classList.remove('hidden'); $('gEnd').classList.remove('show');
+  hideAllGameViews(); $('gPlay').classList.remove('hidden'); $('gEnd').classList.remove('show');
   $('gStageName').textContent=`${i+1}단계 · ${S.name}`;
   nextOrder(); clearInterval(g.timer); g.timer=setInterval(tick,100);
 }
@@ -789,6 +855,7 @@ function endStage(win){
   if (g.endless){
     const best=bestGet(), isNew = g.served>best.served || (g.served===best.served && g.coins>best.coins);
     if (isNew) bestSet({served:g.served, coins:g.coins});
+    if (g.served>=10) stampGive('e10'); if (g.served>=20) stampGive('e20');
     $('gEndTitle').textContent = isNew && g.served>0 ? '새 기록!' : '영업 끝!';
     $('gEndStars').textContent = `손님 ${g.served}명`;
     $('gEndMsg').textContent = `레벨 ${eLevel()+1}까지 갔어요. (최고 기록 ${Math.max(best.served,g.served)}명)` + walletLine;
@@ -798,7 +865,7 @@ function endStage(win){
     return;
   }
   const S=STAGES[g.stage]; let n=0;
-  if (win){ const r=g.timeLeft/S.time; n=r>=0.5?3:r>=0.25?2:1; const all=store.get(); all[g.stage]=Math.max(all[g.stage]||0,n); store.set(all); }
+  if (win){ const r=g.timeLeft/S.time; n=r>=0.5?3:r>=0.25?2:1; const all=store.get(); all[g.stage]=Math.max(all[g.stage]||0,n); store.set(all); stampGive('s'+(g.stage+1)); checkStarStamp(); }
   $('gEndTitle').textContent = win ? `${g.stage+1}단계 성공!` : '시간이 다 됐어요';
   $('gEndStars').textContent = win ? '★'.repeat(n)+'☆'.repeat(3-n) : '';
   $('gEndMsg').textContent = win ? `손님 ${S.goal}명에게 모두 대접했어요. 코인 ${g.coins}개, 남은 시간 ${Math.round(g.timeLeft)}초` : `손님 ${g.served}/${S.goal}명에게 대접했어요. 다시 도전해 봐요!`;
@@ -817,13 +884,192 @@ function buildGame(){
   $('openShop').onclick=openShop; $('closeShop').onclick=showMenu;
   $('gServe').onclick=serve; $('gClear').onclick=clearBoard;
   $('gQuit').onclick=()=>{ clearInterval(g.timer); showMenu(); };
-  $('gRetry').onclick=()=> g.endless ? startEndless() : startStage(g.stage);
+  $('gRetry').onclick=()=> g.mode==='sort' ? startSort() : g.mode==='seq' ? startSeq() : g.mode==='endless' ? startEndless() : startStage(g.stage);
+  $('sortQuit').onclick=showMenu; $('seqQuit').onclick=showMenu; $('stampBack').onclick=showMenu;
   $('gNext').onclick=()=>startStage(g.stage+1);
   $('gToMenu').onclick=()=>{ $('gEnd').classList.remove('show'); showMenu(); };
 }
 
-$('tabBuild').onclick=()=>{ clearInterval(g.timer); $('buildView').classList.remove('hidden'); $('gameView').classList.add('hidden'); $('gEnd').classList.remove('show'); $('tabBuild').classList.add('on'); $('tabGame').classList.remove('on'); };
+$('tabBuild').onclick=()=>{ stopMinis(); $('buildView').classList.remove('hidden'); $('gameView').classList.add('hidden'); $('gEnd').classList.remove('show'); $('tabBuild').classList.add('on'); $('tabGame').classList.remove('on'); };
 $('tabGame').onclick=()=>{ $('buildView').classList.add('hidden'); $('gameView').classList.remove('hidden'); $('tabGame').classList.add('on'); $('tabBuild').classList.remove('on'); showMenu(); };
+
+/* ================= STAMPS ================= */
+const STAMPS = [
+  {id:'s1', name:'첫 손님', how:'1단계 성공'},
+  {id:'s2', name:'영양 주문 척척', how:'2단계 성공'},
+  {id:'s3', name:'균형 요리사', how:'3단계 성공'},
+  {id:'s4', name:'알레르기 지킴이', how:'4단계 성공'},
+  {id:'s5', name:'영양소 통역사', how:'5단계 성공'},
+  {id:'s6', name:'러시 마스터', how:'6단계 성공'},
+  {id:'star', name:'별 수집가', how:'단계 별 합계 12개 이상'},
+  {id:'e10', name:'단골 가게', how:'무한 모드 손님 10명'},
+  {id:'e20', name:'대박 가게', how:'무한 모드 손님 20명'},
+  {id:'sort15', name:'분류왕', how:'식품군 분류 15개 이상 맞히기'},
+  {id:'seq', name:'위생 만점', how:'순서 맞추기 실수 없이 끝내기'},
+  {id:'five', name:'5가지 식품군 카나페', how:'만들기에서 5가지 식품군 담아 완성'},
+  {id:'shop', name:'첫 쇼핑', how:'상점에서 처음 사기'}
+];
+function stampHas(id){ return (shop.stamps||[]).includes(id); }
+function stampGive(id){
+  if (!shop.stamps) shop.stamps=[];
+  if (stampHas(id)) return;
+  shop.stamps.push(id); shopSave();
+  const s = STAMPS.find(x=>x.id===id);
+  toast(`도장 획득! · ${s.name}`);
+}
+function toast(msg){
+  const t=$('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toast.tm); toast.tm=setTimeout(()=>t.classList.remove('show'),2600);
+}
+function stampSVG(on, i){
+  const c = ['#C0392B','#22402C','#8A5A10','#2E5E8C'][i%4];
+  return on
+    ? `<svg viewBox="0 0 90 90" aria-hidden="true"><circle cx="45" cy="45" r="38" fill="none" stroke="${c}" stroke-width="5"/><circle cx="45" cy="45" r="30" fill="none" stroke="${c}" stroke-width="2"/><path d="M28 46 L40 58 L63 33" fill="none" stroke="${c}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+    : `<svg viewBox="0 0 90 90" aria-hidden="true"><circle cx="45" cy="45" r="38" fill="none" stroke="#C9C2B0" stroke-width="3" stroke-dasharray="6 6"/></svg>`;
+}
+function showStamps(){
+  hideAllGameViews(); $('gStamps').classList.remove('hidden');
+  const n=(shop.stamps||[]).length;
+  $('stampCount').textContent=`${n} / ${STAMPS.length}`;
+  $('stampGrid').innerHTML = STAMPS.map((s,i)=>{ const on=stampHas(s.id); return `<div class="stamp ${on?'on':''}">${stampSVG(on,i)}<b>${s.name}</b><span>${s.how}</span></div>`; }).join('');
+}
+function checkStarStamp(){ const all=store.get(); const sum=Object.values(all).reduce((a,b)=>a+b,0); if (sum>=12) stampGive('star'); }
+
+/* ================= SORT TIME ATTACK ================= */
+const SORT_ITEMS = [
+  ...TOPPINGS.map((t,i)=>({name:t.name, g:t.g, svg:`<svg viewBox="0 0 80 80"><use href="#${t.id}"/></svg>`})),
+  ...Object.keys(BASES).map(k=>({name:BASES[k].name, g:'곡', svg:`<svg viewBox="130 130 240 240">${BASE_ART[k]}</svg>`}))
+];
+const sortS = {on:false, score:0, miss:0, time:30, item:null, y:0, speed:0, raf:0, last:0, drag:null, combo:0};
+function startSort(){
+  g.mode='sort'; hideAllGameViews(); $('gSort').classList.remove('hidden'); $('gEnd').classList.remove('show');
+  Object.assign(sortS,{on:true, score:0, miss:0, time:30, combo:0, last:performance.now()});
+  $('sortBaskets').innerHTML = GROUPS.map(G=>`<button class="basket" data-g="${G.k}" style="--bc:${G.color}"><svg viewBox="0 0 100 50" aria-hidden="true"><path d="M6 8 L94 8 L84 46 L16 46 Z" fill="${G.color}" stroke="#7A6440" stroke-width="3"/><path d="M14 20 L86 20 M18 32 L82 32" stroke="#7A6440" stroke-width="2" opacity=".5"/></svg><span>${G.name}</span></button>`).join('');
+  $('sortBaskets').querySelectorAll('.basket').forEach(b=>b.onclick=()=>sortAnswer(b.dataset.g, b));
+  sortNext(); cancelAnimationFrame(sortS.raf); sortS.raf=requestAnimationFrame(sortLoop);
+}
+function sortNext(){
+  let it; do { it=SORT_ITEMS[Math.floor(Math.random()*SORT_ITEMS.length)]; } while (sortS.item && it.name===sortS.item.name);
+  sortS.item=it; sortS.y=0; sortS.speed = 70 + sortS.score*6;   // px per second
+  const el=$('sortItem'); el.innerHTML=it.svg+`<b>${it.name}</b>`; el.style.left='50%'; el.classList.remove('wrong');
+  sortRender();
+}
+function sortRender(){
+  $('sortItem').style.transform=`translate(-50%, ${sortS.y}px)`;
+  $('sortTime').textContent=`${Math.ceil(sortS.time)}초`;
+  $('sortScore').textContent=`맞힘 ${sortS.score}`;
+  $('sortTimeBar').firstElementChild.style.width=(sortS.time/30*100)+'%';
+}
+function sortLoop(now){
+  if (!sortS.on) return;
+  const dt=Math.min(0.1,(now-sortS.last)/1000); sortS.last=now;
+  sortS.time-=dt;
+  if (!sortS.drag) sortS.y+=sortS.speed*dt;
+  const H=$('sortField').clientHeight-110;
+  if (!sortS.drag && sortS.y>H){ sortS.miss++; sortS.combo=0; sortFlash(`놓쳤어요! ${sortS.item.name}: ${GROUPS.find(G=>G.k===sortS.item.g).name}`,'bad'); sortNext(); }
+  if (sortS.time<=0) return sortEnd();
+  sortRender(); sortS.raf=requestAnimationFrame(sortLoop);
+}
+function sortFlash(msg,cls){ const f=$('sortMsg'); f.textContent=msg; f.className='sortMsg show '+cls; clearTimeout(sortFlash.t); sortFlash.t=setTimeout(()=>f.classList.remove('show'),1300); }
+function sortAnswer(gk, btn){
+  if (!sortS.on || !sortS.item) return;
+  const it=sortS.item;
+  if (gk===it.g){ sortS.score++; sortS.combo++; sortFlash(`딩동댕! ${it.name}${sortS.combo>2?' · 연속 '+sortS.combo:''}`,'good'); btn&&btn.classList.add('hit'); setTimeout(()=>btn&&btn.classList.remove('hit'),250); sortNext(); }
+  else { sortS.combo=0; sortS.time=Math.max(0,sortS.time-2); sortFlash(`땡! ${it.name}은(는) ${GROUPS.find(G=>G.k===it.g).name}이에요 (−2초)`,'bad'); $('sortItem').classList.add('wrong'); sortNext(); }
+}
+// drag the falling item onto a basket (uses the floating ghost so it can leave the field)
+$('sortItem').addEventListener('pointerdown', e=>{
+  if (!sortS.on) return; e.preventDefault();
+  const el=$('sortItem'); el.setPointerCapture(e.pointerId);
+  sortS.drag={pid:e.pointerId};
+  ghost.innerHTML=`<div style="width:84px;height:84px">${sortS.item.svg.replace('<svg ','<svg width="84" height="84" ')}</div>`;
+  ghost.style.display='block'; ghost.style.transform=`translate(${e.clientX-42}px, ${e.clientY-42}px)`; el.style.visibility='hidden';
+  const mv=ev=>{ ghost.style.transform=`translate(${ev.clientX-42}px, ${ev.clientY-42}px)`; };
+  const up=ev=>{
+    el.removeEventListener('pointermove',mv); el.removeEventListener('pointerup',up); el.removeEventListener('pointercancel',up);
+    sortS.drag=null; ghost.style.display='none'; el.style.visibility='visible';
+    const hit=[...document.querySelectorAll('#sortBaskets .basket')].find(b=>{const r=b.getBoundingClientRect(); return ev.clientX>=r.left&&ev.clientX<=r.right&&ev.clientY>=r.top-30&&ev.clientY<=r.bottom+10;});
+    if (hit) sortAnswer(hit.dataset.g, hit);
+  };
+  el.addEventListener('pointermove',mv); el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up);
+});
+function sortEnd(){
+  sortS.on=false; cancelAnimationFrame(sortS.raf);
+  const best=Math.max(shop.sortBest||0, sortS.score), isNew=sortS.score>(shop.sortBest||0);
+  shop.sortBest=best; const coins=sortS.score*10; shop.wallet+=coins; shopSave();
+  if (sortS.score>=15) stampGive('sort15');
+  $('gEndTitle').textContent = isNew && sortS.score>0 ? '새 기록!' : '시간 끝!';
+  $('gEndStars').textContent = `${sortS.score}개 맞힘`;
+  $('gEndMsg').textContent = `놓친 재료 ${sortS.miss}개 · 최고 기록 ${best}개. 지갑에 코인 ${coins}개가 들어갔어요. (지금 ${shop.wallet}개)`;
+  $('gEndTip').textContent = '영양 한마디: 크래커·식빵은 곡류, 치즈·크림치즈는 우유·유제품, 잼·마요네즈·마시멜로는 유지·당류예요.';
+  $('gNext').classList.add('hidden'); $('gEnd').classList.add('show');
+}
+
+/* ================= HYGIENE ORDER ================= */
+const SEQ_ROUNDS = [
+  {name:'실습 전 준비', steps:[
+    ['머리 묶기','머리카락이 음식에 들어가지 않게 묶거나 모자를 써요.'],
+    ['앞치마 입기','옷에 음식이 묻지 않고, 옷의 먼지가 음식에 들어가지 않게 해요.'],
+    ['손 씻기','앞치마까지 입은 뒤, 비누로 손가락 사이와 손톱 밑까지 30초 이상 씻어요.'],
+    ['조리대 닦기','음식을 놓을 자리를 깨끗하게 닦아요.'],
+    ['재료 확인하기','상한 재료는 없는지, 알레르기 재료는 없는지 확인해요.'],
+    ['위생장갑 끼기','음식을 만지기 바로 전에 껴요.']
+  ]},
+  {name:'카나페 만들고 정리하기', steps:[
+    ['크래커 놓기','쟁반이나 도마 위에 크래커를 가지런히 놓아요.'],
+    ['잼·크림 바르기','숟가락이나 플라스틱 칼로 얇게 펴 발라요.'],
+    ['토핑 올리기','한 입에 들어가게 크래커 밖으로 넘치지 않게 올려요.'],
+    ['접시에 담기','보기 좋게 담으면 맛도 더 좋아 보여요.'],
+    ['감상·평가하기','다른 모둠 작품의 좋은 점을 찾아 말해요.'],
+    ['함께 시식하기','바닥에 떨어진 것은 먹지 않아요.'],
+    ['정리·분리수거','남은 음식, 비닐, 플라스틱을 나누어 버려요.']
+  ]}
+];
+const seqS={round:0, next:0, miss:0, totalMiss:0, start:0, timer:0, order:[]};
+function startSeq(){
+  g.mode='seq'; hideAllGameViews(); $('gSeq').classList.remove('hidden'); $('gEnd').classList.remove('show');
+  Object.assign(seqS,{round:0, totalMiss:0, start:performance.now()});
+  clearInterval(seqS.timer); seqS.timer=setInterval(()=>{ $('seqTime').textContent=`${Math.floor((performance.now()-seqS.start)/1000)}초`; },250);
+  seqRound();
+}
+function seqRound(){
+  const R=SEQ_ROUNDS[seqS.round]; seqS.next=0; seqS.miss=0;
+  $('seqTitle').textContent=`${seqS.round+1}라운드 · ${R.name}`;
+  $('seqTip').textContent='먼저 해야 하는 일부터 차례대로 눌러요.';
+  $('seqSlots').innerHTML=R.steps.map((s,i)=>`<div class="slot" data-i="${i}"><span class="n">${i+1}</span><span class="t"></span></div>`).join('');
+  seqS.order=shuffle(R.steps.map((s,i)=>i));
+  $('seqCards').innerHTML=seqS.order.map(i=>`<button class="seqCard" data-i="${i}">${R.steps[i][0]}</button>`).join('');
+  $('seqCards').querySelectorAll('.seqCard').forEach(b=>b.onclick=()=>seqPick(+b.dataset.i,b));
+}
+function seqPick(i,btn){
+  const R=SEQ_ROUNDS[seqS.round];
+  if (i===seqS.next){
+    const slot=$('seqSlots').children[i]; slot.classList.add('done'); slot.querySelector('.t').textContent=R.steps[i][0];
+    btn.disabled=true; btn.classList.add('used');
+    $('seqTip').textContent=`${R.steps[i][0]}: ${R.steps[i][1]}`;
+    seqS.next++;
+    if (seqS.next>=R.steps.length){
+      if (seqS.round<SEQ_ROUNDS.length-1){ seqS.round++; setTimeout(seqRound,1200); }
+      else setTimeout(seqEnd,900);
+    }
+  } else {
+    seqS.miss++; seqS.totalMiss++;
+    btn.classList.add('shake'); setTimeout(()=>btn.classList.remove('shake'),400);
+    $('seqTip').textContent=`아직이에요! ${seqS.next+1}번째로 할 일을 찾아보세요.`;
+  }
+}
+function seqEnd(){
+  clearInterval(seqS.timer);
+  const sec=Math.floor((performance.now()-seqS.start)/1000), m=seqS.totalMiss;
+  const n = m===0 ? 3 : m<=3 ? 2 : 1;
+  const coins = n*60; shop.wallet+=coins; shopSave();
+  if (m===0) stampGive('seq');
+  $('gEndTitle').textContent='순서 맞추기 완료!';
+  $('gEndStars').textContent='★'.repeat(n)+'☆'.repeat(3-n);
+  $('gEndMsg').textContent=`걸린 시간 ${sec}초 · 실수 ${m}번. 지갑에 코인 ${coins}개가 들어갔어요. (지금 ${shop.wallet}개)`;
+  $('gEndTip').textContent='안전 한마디: 내일 실습에서도 손 씻기 → 앞치마·장갑 → 재료 확인 순서를 꼭 지켜요!';
+  $('gNext').classList.add('hidden'); $('gEnd').classList.add('show');
+}
 
 buildControls(); render(); buildGame();
 </script>
