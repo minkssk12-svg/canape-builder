@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>나만의 카나페 만들기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{--dark:#22402C;--light:#F7F5EC;--paper:#EEF0E2;--mustard:#E9C46A;--sage:#8DB596;--body:#3A4A3F;--warn:#B3261E;--steel1:#FBFCFC;--steel2:#C5CDD0}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--light);color:var(--dark);font-family:'Gowun Dodum',sans-serif;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+input{-webkit-user-select:text;user-select:text}
+h1,h2,h3,.jua{font-family:'Jua',sans-serif;font-weight:400;margin:0}
+button{font-family:'Jua',sans-serif;font-size:18px;border-radius:14px;padding:10px 16px;cursor:pointer;background:#fff;color:var(--dark);border:2px solid var(--sage);min-height:44px}
+button:disabled{opacity:.45;cursor:default}
+button.primary{background:var(--dark);color:#fff;border-color:var(--dark)}
+button.on{background:var(--mustard);border-color:#C9A13F}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:10px 20px;background:var(--paper);border-bottom:2px solid var(--sage)}
+header h1{font-size:28px}
+.tabs{display:flex;gap:8px}
+input.txt{font-size:18px;padding:8px 12px;border:2px solid var(--sage);border-radius:12px;font-family:inherit;width:190px;min-height:44px}
+main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:18px;padding:16px 20px;max-width:1320px;margin:0 auto;align-items:start}
+.stagePanel{position:sticky;top:10px;z-index:2}
+@media (max-width:860px){main{grid-template-columns:1fr}}
+.panel{background:#fff;border:2px solid var(--sage);border-radius:22px;padding:14px}
+.panel h2{font-size:21px;margin:2px 0 8px}
+#stage,#gStage{width:100%;height:auto;display:block;touch-action:none;border-radius:18px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;min-height:44px;align-items:center}
+.hint{font-size:15px;color:var(--body)}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+/* kitchen bins */
+.kitchen{background:#EFE9DE;background-image:linear-gradient(#E3DBCC 2px,transparent 2px),linear-gradient(90deg,#E3DBCC 2px,transparent 2px);background-size:48px 48px;border:2px solid #CDBFA8;border-radius:22px;padding:12px}
+.kitchen h2{font-size:19px;margin:4px 2px 6px;color:#4A3A26}
+.shelf{display:grid;gap:8px;margin-bottom:8px}
+.shelf.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.shelf.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.shelf.c5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.shelf.c6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.shelf.c6 .bin svg{max-height:62px}
+#gStage{max-height:calc(100vh - 300px);min-height:300px;width:auto;max-width:100%;margin:0 auto}
+#stage{max-height:calc(100vh - 250px);width:auto;max-width:100%;margin:0 auto}
+@media (max-width:860px){#gStage{max-height:32vh;min-height:220px}#stage{max-height:36vh}#gFace{width:64px !important;height:64px !important;flex-basis:64px !important}.ticket .t2{font-size:18px}.stagePanel{box-shadow:0 6px 12px rgba(0,0,0,.12)}}
+.bin{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:4px 4px 5px;min-height:0;border-radius:12px;border:2px solid #98A2A6;background:linear-gradient(180deg,var(--steel1),var(--steel2));box-shadow:0 3px 0 #8E989C;touch-action:none;font-family:'Gowun Dodum',sans-serif;font-weight:700;font-size:13px;color:#2E2A22}
+.bin .tray{width:100%;border-radius:8px;background:linear-gradient(180deg,#8C969A,#B8C0C3 30%,#D7DDDF);box-shadow:inset 0 3px 6px rgba(0,0,0,.35);padding:2px;display:flex;justify-content:center}
+.bin svg{width:100%;height:auto;display:block;pointer-events:none}
+.boardWrap{background:#E7E2D6;border-radius:18px}
+.bin .lbl{margin-top:3px;line-height:1.15;text-align:center;pointer-events:none}
+.bin .chip{pointer-events:none}
+.bin.on{border-color:#C9A13F;box-shadow:0 3px 0 #C9A13F,0 0 0 3px #F3DE9E}
+.bin:active{transform:translateY(2px);box-shadow:0 1px 0 #8E989C}
+.chip{display:inline-block;font-size:10.5px;font-weight:400;border-radius:999px;padding:0 6px;border:1px solid #9AA59C;margin-top:2px}
+#ghost{position:fixed;left:0;top:0;width:84px;height:84px;pointer-events:none;z-index:50;display:none;filter:drop-shadow(0 8px 6px rgba(0,0,0,.3))}
+/* builder extras */
+.groups{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.g{border-radius:14px;padding:8px 4px;text-align:center;font-size:14px;border:2px dashed #B8C2B9;color:#6A766C;line-height:1.3}
+.g.ok{border-style:solid;border-color:var(--dark);color:var(--dark);background:#EAF2E4}
+.g b{display:block;font-family:'Jua',sans-serif;font-weight:400;font-size:20px}
+#advice{margin-top:10px;font-size:16px;line-height:1.5}
+.warn{color:var(--warn);font-weight:700}
+.stepper{display:flex;align-items:center;gap:8px;font-size:18px}
+.stepper button{width:44px;padding:0}
+.stepper output{font-family:'Jua',sans-serif;font-size:24px;min-width:32px;text-align:center}
+#total{font-family:'Jua',sans-serif;font-size:26px;background:var(--mustard);border-radius:14px;padding:8px 14px;display:inline-block;margin:8px 0}
+#shop{margin:6px 0 0;padding-left:20px;font-size:16px;line-height:1.6}
+.modal{position:fixed;inset:0;background:rgba(20,40,28,.55);display:none;align-items:center;justify-content:center;padding:16px;z-index:60}
+.modal.show{display:flex}
+.modal .card{background:#fff;border-radius:24px;padding:20px;max-width:520px;width:100%;text-align:center;max-height:96vh;overflow:auto}
+#doneImg{width:100%;border-radius:16px;border:2px solid var(--sage)}
+.btns{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+/* game */
+.hidden{display:none !important}
+.wrap{max-width:1320px;margin:0 auto;padding:20px}
+.stages{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:16px}
+.stageCard{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:18px;border-radius:22px;background:#fff}
+.stageCard .num{font-size:15px;color:#4E7A55}
+.stageCard h3{font-size:24px}
+.stageCard p{margin:0;font-family:'Gowun Dodum',sans-serif;font-size:15px;line-height:1.5;color:var(--body);font-weight:400}
+.stars{font-size:22px;color:#C9A13F;letter-spacing:2px}
+.gbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:8px}
+.pill{font-family:'Jua',sans-serif;font-size:19px;background:#fff;border:2px solid #CDBFA8;border-radius:999px;padding:5px 14px}
+.timebar{height:14px;background:#E3DBCC;border-radius:999px;overflow:hidden;margin-bottom:10px}
+.timebar div{height:100%;background:var(--dark);width:100%;transition:width .1s linear}
+.timebar.low div{background:var(--warn)}
+.counter{display:flex;gap:12px;align-items:flex-end;margin-bottom:8px}
+.ticket{flex:1;position:relative;background:#FFFDF6;border:1px solid #D9CFB8;border-radius:4px 4px 12px 12px;padding:10px 14px 12px;box-shadow:0 3px 6px rgba(60,40,20,.15);background-image:repeating-linear-gradient(#FFFDF6 0 27px,#EFE6D2 27px 28px)}
+.ticket::before{content:"";position:absolute;left:0;right:0;top:-6px;height:6px;background:radial-gradient(circle at 6px 6px,#FFFDF6 5px,transparent 5.5px) repeat-x;background-size:12px 6px}
+.ticket .t1{font-size:13px;color:#8A7B5E}
+.ticket .t2{font-family:'Jua',sans-serif;font-size:21px;line-height:1.35;color:#2E2A22}
+.ticket .icons{display:flex;gap:4px;margin-top:4px}
+.ticket .icons svg{width:34px;height:34px}
+#gFace{width:88px;height:88px;flex:0 0 88px}
+.boardWrap{position:relative}
+#feedback{position:absolute;left:50%;top:12px;transform:translateX(-50%);font-family:'Jua',sans-serif;font-size:22px;padding:6px 16px;border-radius:999px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .2s}
+#feedback.show{opacity:1}
+#feedback.good{color:#2F6B2F}
+#feedback.bad{color:var(--warn)}
+.serveBtn{display:flex;align-items:center;justify-content:center;gap:8px;font-size:22px}
+.serveBtn svg{width:28px;height:28px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="defs"></defs></svg>
+<header>
+  <h1>나만의 카나페 만들기</h1>
+  <div class="tabs">
+    <button id="tabBuild" class="on">카나페 만들기</button>
+    <button id="tabGame">카나페 가게 게임</button>
+  </div>
+</header>
+
+<!-- BUILDER -->
+<div id="buildView">
+  <main>
+    <section class="panel stagePanel">
+      <div class="row" style="margin-bottom:8px">
+        <input class="txt" id="who" placeholder="모둠 / 이름" aria-label="모둠과 이름">
+        <input class="txt" id="cname" placeholder="카나페 이름" aria-label="카나페 이름">
+        <button id="reset">초기화</button>
+      </div>
+      <svg id="stage" viewBox="0 0 500 500" role="img" aria-label="카나페 만들기 접시"></svg>
+      <div class="tools" id="tools"></div>
+      <p id="overflow" class="warn" style="margin:6px 0 0"></p>
+    </section>
+    <section style="display:flex;flex-direction:column;gap:14px">
+      <div class="kitchen">
+        <h2>① 바탕 (끌어다 접시에 놓기)</h2>
+        <div class="shelf c3" id="bases"></div>
+        <h2>② 바르기</h2>
+        <div class="shelf c4" id="spreads"></div>
+        <h2>③ 토핑</h2>
+        <div class="shelf c5" id="palette"></div>
+      </div>
+      <div class="panel">
+        <h2>④ 식품군 점검</h2>
+        <div class="groups" id="groups"></div>
+        <div id="advice"></div>
+      </div>
+      <div class="panel">
+        <h2>⑤ 몇 개 필요할까?</h2>
+        <div class="row" style="gap:20px">
+          <div class="stepper">한 사람 <button data-k="per" data-d="-1" aria-label="한 사람 개수 줄이기">−</button><output id="per">2</output><button data-k="per" data-d="1" aria-label="한 사람 개수 늘리기">+</button>개</div>
+          <div class="stepper">모둠원 <button data-k="mem" data-d="-1" aria-label="모둠원 수 줄이기">−</button><output id="mem">4</output><button data-k="mem" data-d="1" aria-label="모둠원 수 늘리기">+</button>명</div>
+        </div>
+        <div id="formula" class="hint"></div>
+        <div id="total"></div>
+        <ul id="shop"></ul>
+        <div class="row" style="margin-top:12px"><button class="primary" id="finish">완성하기</button></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- GAME -->
+<div id="gameView" class="hidden">
+  <div class="wrap" id="gMenu">
+    <h2 style="font-size:32px">카나페 가게</h2>
+    <p class="hint" style="font-size:17px;margin:6px 0 0">주문서를 보고 재료 통에서 크래커, 소스, 토핑을 도마로 끌어다 놓아 카나페를 만들어요. 틀리게 내면 5초가 줄어들어요!</p>
+    <div class="stages" id="stageList"></div>
+  </div>
+  <div class="hidden" id="gPlay">
+    <main>
+      <section class="panel stagePanel" style="background:#FBF7EE;border-color:#CDBFA8">
+        <div class="gbar">
+          <span class="pill" id="gStageName"></span>
+          <span class="pill" id="gServed"></span>
+          <span class="pill" id="gCoins"></span>
+        </div>
+        <div class="timebar" id="gTimeBar"><div></div></div>
+        <div class="counter">
+          <svg id="gFace" viewBox="0 0 88 88" aria-hidden="true"></svg>
+          <div class="ticket"><div class="t1" id="gTicketNo"></div><div class="t2" id="gOrder"></div><div class="icons" id="gIcons"></div></div>
+        </div>
+        <div class="boardWrap">
+          <svg id="gStage" viewBox="40 40 420 450" role="img" aria-label="도마 위 카나페"></svg>
+          <div id="feedback"></div>
+        </div>
+        <div class="row" style="margin-top:8px;margin-bottom:0">
+          <button class="primary serveBtn" id="gServe" style="flex:1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 18h16M6 18a6 6 0 0 1 12 0M12 9V7M10 6h4"/></svg>손님에게 내기</button>
+          <button id="gClear">도마 비우기</button>
+          <button id="gQuit">그만하기</button>
+        </div>
+      </section>
+      <section class="kitchen">
+        <h2>크래커 · 바르기</h2>
+        <div class="shelf c6" id="gBaseSpread"><div id="gBases" style="display:contents"></div><div id="gSpreads" style="display:contents"></div></div>
+        <h2>토핑 <span class="hint">(최대 6개)</span></h2>
+        <div class="shelf c5" id="gPalette"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div id="ghost"></div>
+
+<div class="modal" id="done" role="dialog" aria-modal="true" aria-label="완성 카드">
+  <div class="card">
+    <h2 style="font-size:28px;margin-bottom:10px">완성!</h2>
+    <img id="doneImg" alt="완성한 카나페 카드">
+    <div class="btns"><button class="primary" id="save">이미지로 저장</button><button id="close">계속 고치기</button></div>
+  </div>
+</div>
+<div class="modal" id="gEnd" role="dialog" aria-modal="true" aria-label="단계 결과">
+  <div class="card">
+    <h2 id="gEndTitle" style="font-size:32px"></h2>
+    <div class="stars" id="gEndStars" style="font-size:40px;margin:8px 0"></div>
+    <p id="gEndMsg" style="font-size:18px;line-height:1.6;margin:0"></p>
+    <p id="gEndTip" style="font-size:16px;line-height:1.6;background:var(--paper);border-radius:14px;padding:12px;margin:12px 0 0;text-align:left"></p>
+    <div class="btns"><button class="primary" id="gNext">다음 단계</button><button id="gRetry">다시 하기</button><button id="gToMenu">단계 선택</button></div>
+  </div>
+</div>
+
+<script>
+/* ===== ART: gradients, ingredient symbols, bases ===== */
+const GRAD = `
+<linearGradient id="k-cheese" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFEDA8"/><stop offset="1" stop-color="#F2B935"/></linearGradient>
+<radialGradient id="k-cream" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E9E1CC"/></radialGradient>
+<radialGradient id="k-white" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#E4E0D4"/></radialGradient>
+<radialGradient id="k-yolk" cx=".38" cy=".35" r=".7"><stop offset="0" stop-color="#FFE68A"/><stop offset="1" stop-color="#EE9F00"/></radialGradient>
+<radialGradient id="k-ham" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#FCCAD2"/><stop offset="1" stop-color="#DC7489"/></radialGradient>
+<radialGradient id="k-tuna" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#F4DCC0"/><stop offset="1" stop-color="#C58E62"/></radialGradient>
+<linearGradient id="k-salmon" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFB894"/><stop offset="1" stop-color="#EA5F2F"/></linearGradient>
+<radialGradient id="k-tomato" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#FF8E78"/><stop offset="1" stop-color="#C9201A"/></radialGradient>
+<radialGradient id="k-cuke" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#F6FCE8"/><stop offset="1" stop-color="#B7DA8A"/></radialGradient>
+<radialGradient id="k-carrot" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#FFC47E"/><stop offset="1" stop-color="#EC7012"/></radialGradient>
+<radialGradient id="k-pickle" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#DCE59A"/><stop offset="1" stop-color="#86A040"/></radialGradient>
+<radialGradient id="k-kiwi" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#E2F2A6"/><stop offset="1" stop-color="#6FAE2E"/></radialGradient>
+<radialGradient id="k-straw" cx=".4" cy=".35" r=".8"><stop offset="0" stop-color="#FF7C88"/><stop offset="1" stop-color="#C8172F"/></radialGradient>
+<radialGradient id="k-strawin" cx=".5" cy=".45" r=".7"><stop offset="0" stop-color="#FFF0EE"/><stop offset="1" stop-color="#F27E8B"/></radialGradient>
+<radialGradient id="k-banana" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#FFFBE6"/><stop offset="1" stop-color="#F1DC96"/></radialGradient>
+<radialGradient id="k-blue" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#8E9CE6"/><stop offset="1" stop-color="#2B3580"/></radialGradient>
+<radialGradient id="k-apple" cx=".4" cy=".4" r=".8"><stop offset="0" stop-color="#FFFBEE"/><stop offset="1" stop-color="#F0D99E"/></radialGradient>
+<linearGradient id="k-appleskin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E5483B"/><stop offset="1" stop-color="#9E171B"/></linearGradient>
+<linearGradient id="k-pepR" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF7A55"/><stop offset="1" stop-color="#C11A10"/></linearGradient>
+<linearGradient id="k-pepY" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE77A"/><stop offset="1" stop-color="#E3A200"/></linearGradient>
+<linearGradient id="k-marsh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F7E3EC"/><stop offset=".45" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EBCFDC"/></linearGradient>
+<radialGradient id="k-jam" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#EE4E64"/><stop offset="1" stop-color="#8A0C22"/></radialGradient>
+<radialGradient id="k-mayo" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#FFFDF0"/><stop offset="1" stop-color="#EEDDA0"/></radialGradient>
+<linearGradient id="k-crab" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8360"/><stop offset="1" stop-color="#DD3A1E"/></linearGradient>
+<radialGradient id="k-crk" cx=".45" cy=".4" r=".75"><stop offset="0" stop-color="#FBE0AA"/><stop offset=".75" stop-color="#E9B66C"/><stop offset="1" stop-color="#C98940"/></radialGradient>
+<radialGradient id="k-ritz" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#F8CF86"/><stop offset=".8" stop-color="#DE9A48"/><stop offset="1" stop-color="#B86E2A"/></radialGradient>
+<linearGradient id="k-crust" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D9964F"/><stop offset="1" stop-color="#93561F"/></linearGradient>
+<radialGradient id="k-crumb" cx=".5" cy=".45" r=".75"><stop offset="0" stop-color="#FFF8E6"/><stop offset="1" stop-color="#F1DCAE"/></radialGradient>
+<radialGradient id="k-plate" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".85" stop-color="#F1F2EE"/><stop offset="1" stop-color="#D8DBD3"/></radialGradient>
+<linearGradient id="k-wood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E2B57B"/><stop offset="1" stop-color="#B7844C"/></linearGradient>
+<linearGradient id="k-table" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C9A27A"/><stop offset="1" stop-color="#A97F58"/></linearGradient>
+`;
+
+const SH = (rx,ry,cy=47) => `<ellipse cx="42" cy="${cy}" rx="${rx}" ry="${ry}" fill="#3A2412" opacity=".18"/>`;
+function ring(n, r, cx, cy, fn){ let o=''; for(let i=0;i<n;i++){ const a=i/n*Math.PI*2; o+=fn(cx+Math.cos(a)*r, cy+Math.sin(a)*r, a*180/Math.PI); } return o; }
+function wavy(cx,cy,rx,ry,n,amp){ let d=''; for(let i=0;i<=n*4;i++){ const a=i/(n*4)*Math.PI*2, k=1+amp*Math.sin(a*n); d+=(i?'L':'M')+(cx+Math.cos(a)*rx*k).toFixed(1)+' '+(cy+Math.sin(a)*ry*k).toFixed(1)+' '; } return d+'Z'; }
+
+const ART = {
+'슬라이스 치즈': SH(30,26,46)+`<path d="M12 16 L66 11 L70 64 L14 69 Z" fill="url(#k-cheese)" stroke="#D39424" stroke-width="1.5"/><path d="M14 18 L64 14" stroke="#FFF6CF" stroke-width="2" opacity=".8"/><g fill="#E4A431" opacity=".55"><circle cx="30" cy="32" r="6"/><circle cx="52" cy="46" r="8"/><circle cx="30" cy="56" r="4"/><circle cx="56" cy="24" r="3"/></g>`,
+'크림치즈': SH(30,20,50)+`<path d="M14 54 C8 40 20 28 32 32 C34 20 52 18 56 30 C68 30 74 46 64 54 C52 62 26 62 14 54 Z" fill="url(#k-cream)" stroke="#D3C9B1" stroke-width="1.2"/><path d="M24 48 C32 38 46 36 56 44 M30 36 C36 30 44 30 48 34" fill="none" stroke="#DDD3BC" stroke-width="2"/><ellipse cx="34" cy="36" rx="7" ry="3" fill="#fff" opacity=".9"/>`,
+'삶은 달걀': SH(30,23,46)+`<ellipse cx="40" cy="40" rx="30" ry="24" fill="url(#k-white)" stroke="#D3CEC0" stroke-width="1.2"/><circle cx="40" cy="40" r="14" fill="#F7D46A"/><circle cx="40" cy="40" r="12.5" fill="url(#k-yolk)"/><ellipse cx="35" cy="35" rx="4" ry="2.5" fill="#FFF3C4" opacity=".8"/>`,
+'햄': SH(30,26,46)+`<circle cx="40" cy="40" r="30" fill="url(#k-ham)" stroke="#C25F75" stroke-width="1.2"/><circle cx="40" cy="40" r="26" fill="none" stroke="#FCDDE2" stroke-width="3" opacity=".8"/><g fill="#FDE0E5" opacity=".7"><ellipse cx="30" cy="34" rx="5" ry="2.5"/><ellipse cx="50" cy="48" rx="6" ry="2.5" transform="rotate(20 50 48)"/><ellipse cx="44" cy="30" rx="3" ry="1.5"/></g><ellipse cx="30" cy="26" rx="8" ry="3" fill="#fff" opacity=".45"/>`,
+'참치': SH(30,20,50)+`<g stroke="#B07A4E" stroke-width="1"><path d="M12 46 C10 34 22 28 30 32 C34 24 46 24 48 32 C42 40 30 52 12 46 Z" fill="url(#k-tuna)"/><path d="M34 40 C40 28 58 26 64 36 C70 46 58 58 46 54 C38 56 32 48 34 40 Z" fill="url(#k-tuna)"/><path d="M18 52 C22 44 36 44 40 52 C38 60 24 62 18 52 Z" fill="url(#k-tuna)"/></g><g stroke="#D9AE85" stroke-width="1.5" fill="none"><path d="M40 40 L58 38 M42 48 L60 46 M22 40 L36 36 M24 54 L34 52"/></g>`,
+'게맛살': SH(32,14,52)+`<rect x="9" y="27" width="62" height="26" rx="10" fill="#FFF8F2" stroke="#E3CDBE" stroke-width="1.2"/><path d="M19 27 L61 27 Q71 27 71 37 L71 39 L9 39 L9 37 Q9 27 19 27 Z" fill="url(#k-crab)"/><g stroke="#F1DFD3" stroke-width="1.2"><path d="M14 44 L66 44 M14 48 L66 48"/></g><path d="M16 30 L60 30" stroke="#FFC3B0" stroke-width="2" opacity=".8"/>`,
+'연어': SH(32,18,50)+`<path d="M8 50 C16 26 44 16 72 28 C68 50 42 64 12 60 Z" fill="url(#k-salmon)" stroke="#D2552A" stroke-width="1.2"/><g fill="none" stroke="#FFE3D3" stroke-width="3" stroke-linecap="round"><path d="M20 54 C28 42 40 34 54 30"/><path d="M32 58 C40 48 50 42 64 38"/><path d="M14 46 C20 38 28 32 38 28"/></g><path d="M30 24 C42 20 54 20 64 24" stroke="#FFD0B8" stroke-width="2" fill="none" opacity=".7"/>`,
+'방울토마토': SH(27,23,46)+`<circle cx="40" cy="40" r="27" fill="url(#k-tomato)" stroke="#A91912" stroke-width="1.2"/><circle cx="40" cy="40" r="22" fill="#EE5541"/>${ring(3,11,40,40,(x,y,a)=>`<ellipse cx="${x}" cy="${y}" rx="8" ry="6" transform="rotate(${a} ${x} ${y})" fill="#FFB39F" opacity=".9"/><circle cx="${x}" cy="${y}" r="1.6" fill="#F7E4A4"/><circle cx="${x+3}" cy="${y-2}" r="1.4" fill="#F7E4A4"/>`)}<circle cx="40" cy="40" r="4" fill="#FFC9B9"/><ellipse cx="29" cy="25" rx="6" ry="3" fill="#fff" opacity=".45"/>`,
+'오이': SH(28,24,46)+`<circle cx="40" cy="40" r="28" fill="#2F6E22"/><circle cx="40" cy="40" r="25" fill="url(#k-cuke)"/>${ring(3,9,40,40,(x,y,a)=>`<ellipse cx="${x}" cy="${y}" rx="7" ry="4" transform="rotate(${a} ${x} ${y})" fill="#E9F6D2" stroke="#B9D88E" stroke-width="1"/>`)}${ring(12,20,40,40,(x,y)=>`<circle cx="${x}" cy="${y}" r="1" fill="#A6CC78"/>`)}`,
+'당근': SH(24,21,45)+`<circle cx="40" cy="40" r="24" fill="url(#k-carrot)" stroke="#D45E0B" stroke-width="1.2"/><circle cx="40" cy="40" r="11" fill="#FFB866" opacity=".85"/>${ring(10,17,40,40,(x,y)=>`<line x1="40" y1="40" x2="${x}" y2="${y}" stroke="#F5953C" stroke-width="1" opacity=".6"/>`)}`,
+'피클': SH(28,22,46)+`<path d="${wavy(40,40,28,24,14,.06)}" fill="url(#k-pickle)" stroke="#6C8829" stroke-width="1.2"/><ellipse cx="40" cy="40" rx="20" ry="16" fill="none" stroke="#C9D67E" stroke-width="2" opacity=".8"/>${ring(5,9,40,40,(x,y)=>`<ellipse cx="${x}" cy="${y}" rx="2.5" ry="1.6" fill="#F0F2C4"/>`)}`,
+'키위': SH(29,25,46)+`<circle cx="40" cy="40" r="29" fill="#76552F"/><circle cx="40" cy="40" r="26" fill="url(#k-kiwi)"/>${ring(16,22,40,40,(x,y)=>`<line x1="40" y1="40" x2="${x}" y2="${y}" stroke="#EAF6BE" stroke-width="1" opacity=".6"/>`)}<ellipse cx="40" cy="40" rx="8" ry="6" fill="#F6F9E4"/>${ring(12,12,40,40,(x,y,a)=>`<ellipse cx="${x}" cy="${y}" rx="1.8" ry="1" transform="rotate(${a} ${x} ${y})" fill="#1E1A12"/>`)}`,
+'딸기': SH(26,22,48)+`<path d="M16 26 C16 16 64 16 64 26 C64 46 52 64 40 70 C28 64 16 46 16 26 Z" fill="url(#k-straw)" stroke="#A31228" stroke-width="1.2"/><path d="M22 28 C24 22 56 22 58 28 C58 44 50 58 40 63 C30 58 22 44 22 28 Z" fill="url(#k-strawin)"/><path d="M40 30 C36 40 37 50 40 58 C43 50 44 40 40 30 Z" fill="#FFF6F4" opacity=".9"/>${[[20,32],[60,32],[24,46],[56,46],[32,60],[48,60]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="1.3" ry="2" fill="#F8E18A"/>`).join('')}<path d="M26 20 L32 12 L38 19 L44 11 L50 19 L56 13 L56 22 C46 26 34 26 24 22 Z" fill="#4E9A2E" stroke="#2F6E1A" stroke-width="1"/>`,
+'바나나': SH(24,21,45)+`<circle cx="40" cy="40" r="24" fill="url(#k-banana)" stroke="#DCC274" stroke-width="1.2"/>${ring(3,4,40,40,(x,y)=>`<ellipse cx="${x}" cy="${y}" rx="1.8" ry="2.6" fill="#9C7A3A" opacity=".7"/>`)}${ring(8,14,40,40,(x,y)=>`<line x1="40" y1="40" x2="${x}" y2="${y}" stroke="#E6D08E" stroke-width="1" opacity=".5"/>`)}`,
+'블루베리': SH(30,18,54)+[[28,46],[52,46],[40,28]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="13" fill="url(#k-blue)" stroke="#1F2766" stroke-width="1"/><ellipse cx="${x-4}" cy="${y-5}" rx="5" ry="3" fill="#fff" opacity=".3"/><path d="M${x-3} ${y-11} L${x} ${y-8} L${x+3} ${y-11}" stroke="#1A1F4A" stroke-width="1.5" fill="none"/>`).join(''),
+'사과': SH(30,16,52)+`<path d="M10 52 C14 32 66 32 70 52 Z" fill="url(#k-apple)" stroke="#D7C08A" stroke-width="1.2"/><path d="M10 52 C14 32 66 32 70 52 L66 52 C62 38 18 38 14 52 Z" fill="url(#k-appleskin)"/><path d="M38 48 C36 44 38 42 40 42 C42 42 44 44 42 48 Z" fill="#6B3F1C"/><path d="M22 46 C30 42 50 42 58 46" stroke="#fff" stroke-width="1.5" fill="none" opacity=".6"/>`,
+'파프리카': SH(32,14,54)+`<path d="M12 46 C24 30 56 30 68 46" fill="none" stroke="#9E140C" stroke-width="12" stroke-linecap="round"/><path d="M12 46 C24 30 56 30 68 46" fill="none" stroke="url(#k-pepR)" stroke-width="9" stroke-linecap="round"/><path d="M16 58 C28 44 52 44 64 58" fill="none" stroke="#C48A00" stroke-width="12" stroke-linecap="round"/><path d="M16 58 C28 44 52 44 64 58" fill="none" stroke="url(#k-pepY)" stroke-width="9" stroke-linecap="round"/><path d="M22 40 C30 34 44 33 54 36" stroke="#FFC2AE" stroke-width="2" fill="none"/>`,
+'마시멜로': SH(24,10,62)+`<rect x="18" y="26" width="44" height="34" rx="12" fill="url(#k-marsh)" stroke="#D9B7C8" stroke-width="1.2"/><ellipse cx="40" cy="28" rx="21" ry="8" fill="#FFF8FB" stroke="#E2C4D2" stroke-width="1.2"/><ellipse cx="34" cy="27" rx="7" ry="2.5" fill="#fff"/>${[[24,40],[30,50],[50,44],[54,54],[42,52]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r=".9" fill="#fff"/>`).join('')}`,
+'딸기잼': SH(30,20,50)+`<path d="M14 46 C12 34 26 30 34 34 C40 24 58 26 60 38 C70 42 66 56 54 54 C46 62 24 60 14 46 Z" fill="url(#k-jam)" stroke="#6E0918" stroke-width="1.2"/><ellipse cx="34" cy="38" rx="7" ry="3" fill="#fff" opacity=".55"/><ellipse cx="54" cy="44" rx="3" ry="1.5" fill="#fff" opacity=".45"/>`,
+'마요네즈': SH(28,18,52)+`<path d="M14 52 C10 42 22 36 30 40 C30 30 50 28 52 38 C60 34 70 44 64 52 C52 60 28 60 14 52 Z" fill="url(#k-mayo)" stroke="#D5C27F" stroke-width="1.2"/><path d="M24 48 C30 40 50 40 56 48 M32 42 C36 36 44 36 48 40" stroke="#E5D394" stroke-width="2" fill="none"/><path d="M40 34 C42 30 40 28 38 26" stroke="#E5D394" stroke-width="2" fill="none"/><ellipse cx="32" cy="40" rx="5" ry="2" fill="#fff"/>`
+};
+
+const TOPPING_LIST = [
+ ['슬라이스 치즈','우'],['크림치즈','우'],['삶은 달걀','단'],['햄','단'],['참치','단'],['게맛살','단'],['연어','단'],
+ ['방울토마토','채'],['오이','채'],['당근','채'],['피클','채'],['키위','채'],['딸기','채'],['바나나','채'],['블루베리','채'],['사과','채'],['파프리카','채'],
+ ['마시멜로','유'],['딸기잼','유'],['마요네즈','유']
+];
+const TOPPINGS = TOPPING_LIST.map(([name,g],i)=>({name, g, id:'t'+i}));
+
+/* bases (500x500 coords, centred at 250) */
+function scallop(cx,cy,r,n,b){ let d=''; for(let i=0;i<n;i++){ const a1=i/n*Math.PI*2, a2=(i+1)/n*Math.PI*2, am=(a1+a2)/2;
+  const p1=[cx+Math.cos(a1)*r, cy+Math.sin(a1)*r], p2=[cx+Math.cos(a2)*r, cy+Math.sin(a2)*r], c=[cx+Math.cos(am)*(r+b), cy+Math.sin(am)*(r+b)];
+  d+=(i?'':`M${p1[0].toFixed(1)} ${p1[1].toFixed(1)} `)+`Q${c[0].toFixed(1)} ${c[1].toFixed(1)} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)} `; } return d+'Z'; }
+const hole = (x,y,r=5) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#A86A2E"/><circle cx="${x}" cy="${y+1.5}" r="${r-1.8}" fill="#8C5422" opacity=".7"/><circle cx="${x-1.5}" cy="${y-1.5}" r="1.2" fill="#F6D79F" opacity=".7"/>`;
+const speck = pts => pts.map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r||1.4}" fill="#FFFDF5" opacity=".9"/>`).join('');
+const baked = pts => pts.map(([x,y,rx,ry])=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#B06E2C" opacity=".18"/>`).join('');
+const BASE_ART = {
+  square: `<rect x="166" y="170" width="180" height="180" rx="14" fill="#5A3A1A" opacity=".2"/><rect x="160" y="160" width="180" height="180" rx="14" fill="url(#k-crk)" stroke="#B0702F" stroke-width="2.5"/><rect x="168" y="168" width="164" height="164" rx="10" fill="none" stroke="#F6D49A" stroke-width="2" opacity=".7"/>${baked([[190,200,18,10],[300,300,22,12],[290,190,14,8],[200,300,16,9]])}${[200,250,300].map(y=>[200,250,300].map(x=>hole(x,y)).join('')).join('')}${speck([[222,224],[276,216],[230,276],[284,272,1.8],[214,318],[318,236]])}`,
+  round: `<circle cx="256" cy="258" r="108" fill="#5A3A1A" opacity=".2"/><path d="${scallop(250,250,100,18,9)}" fill="url(#k-ritz)" stroke="#A9662A" stroke-width="2.5"/><circle cx="250" cy="250" r="84" fill="none" stroke="#C77F38" stroke-width="2.5" opacity=".6"/><circle cx="250" cy="250" r="80" fill="none" stroke="#F7D292" stroke-width="2" opacity=".6"/>${hole(250,250,4)}${[0,1,2,3,4,5].map(i=>{const a=i/6*Math.PI*2;return hole(250+Math.cos(a)*48,250+Math.sin(a)*48,4);}).join('')}${speck([[226,222],[276,232],[232,282],[282,276],[250,206]])}`,
+  bread: `<rect x="146" y="148" width="220" height="220" rx="16" fill="#5A3A1A" opacity=".2"/><rect x="140" y="140" width="220" height="220" rx="16" fill="url(#k-crust)" stroke="#7E4518" stroke-width="2"/><rect x="154" y="154" width="192" height="192" rx="10" fill="url(#k-crumb)"/>${Array.from({length:40},(_,i)=>{const x=165+((i*53)%170), y=165+((i*97)%170), r=1.5+(i%3);return `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r*0.7}" fill="#E7CF9C" opacity=".7"/>`;}).join('')}`
+};
+const SPREAD_SHAPE = {
+  square: (f,extra) => `<path d="M178 186 C182 172 214 176 250 174 C290 172 322 172 324 190 C330 220 326 280 324 312 C320 330 290 326 250 328 C214 330 180 330 176 312 C172 280 174 220 178 186 Z" fill="${f}" ${extra}/>`,
+  round:  (f,extra) => `<path d="M250 176 C300 174 326 206 324 250 C326 298 296 326 250 324 C204 326 174 296 176 250 C174 204 204 174 250 176 Z" fill="${f}" ${extra}/>`,
+  bread:  (f,extra) => `<path d="M170 178 C176 164 216 168 256 166 C300 164 332 166 334 184 C340 222 336 290 332 326 C326 340 290 336 250 338 C210 340 172 340 168 322 C162 286 164 220 170 178 Z" fill="${f}" ${extra}/>`
+};
+const SPREAD_ART = {
+  jam:   b => SPREAD_SHAPE[b]('url(#k-jam)','opacity=".88"') + `<path d="M210 210 C230 200 260 204 280 214" stroke="#FF9AA6" stroke-width="4" fill="none" opacity=".6" stroke-linecap="round"/><ellipse cx="290" cy="290" rx="10" ry="4" fill="#fff" opacity=".35"/>`,
+  cream: b => SPREAD_SHAPE[b]('url(#k-cream)','stroke="#DCD2BC" stroke-width="1.5"') + `<g fill="none" stroke="#E2D9C4" stroke-width="3" stroke-linecap="round"><path d="M200 230 C230 214 270 214 300 232"/><path d="M204 280 C236 266 272 268 300 284"/></g><ellipse cx="222" cy="206" rx="14" ry="5" fill="#fff"/>`,
+  mayo:  b => SPREAD_SHAPE[b]('url(#k-mayo)','stroke="#D8C789" stroke-width="1.5" opacity=".95"') + `<g fill="none" stroke="#E6D597" stroke-width="3" stroke-linecap="round"><path d="M202 236 C232 220 268 220 298 238"/><path d="M206 284 C236 270 270 272 298 288"/></g><ellipse cx="226" cy="208" rx="12" ry="4" fill="#fff"/>`
+};
+
+const DEFS = GRAD + TOPPINGS.map(t=>`<symbol id="${t.id}" viewBox="0 0 80 80">${ART[t.name]}</symbol>`).join('');
+
+/* backgrounds */
+const PLATE_BG = `<rect x="0" y="0" width="500" height="500" fill="url(#k-table)"/>${[60,140,230,320,410].map((y,i)=>`<path d="M0 ${y} C120 ${y+12} 260 ${y-10} 500 ${y+6}" stroke="#9A7049" stroke-width="2" fill="none" opacity=".35"/>`).join('')}<ellipse cx="256" cy="262" rx="232" ry="228" fill="#3A2412" opacity=".22"/><circle cx="250" cy="250" r="232" fill="url(#k-plate)" stroke="#CFD3CA" stroke-width="2"/><circle cx="250" cy="250" r="182" fill="none" stroke="#E2E5DE" stroke-width="3"/><ellipse cx="170" cy="120" rx="60" ry="18" fill="#fff" opacity=".7" transform="rotate(-25 170 120)"/>`;
+const BOARD_BG = `<rect x="0" y="0" width="500" height="500" fill="#E7E2D6"/><rect x="62" y="70" width="380" height="380" rx="36" fill="#3A2412" opacity=".18"/><rect x="56" y="60" width="388" height="380" rx="36" fill="url(#k-wood)" stroke="#9C6B35" stroke-width="3"/>${[100,150,205,260,320,380].map(y=>`<path d="M76 ${y} C180 ${y+10} 300 ${y-8} 424 ${y+4}" stroke="#A97640" stroke-width="2" fill="none" opacity=".45"/>`).join('')}<rect x="200" y="440" width="100" height="40" rx="16" fill="url(#k-wood)" stroke="#9C6B35" stroke-width="3"/><circle cx="250" cy="460" r="7" fill="#9C6B35"/>`;
+
+
+const TIDX = Object.fromEntries(TOPPINGS.map((t,i)=>[t.name,i]));
+const GROUPS = [
+  {k:'곡', name:'곡류', color:'#F3E3C3'},
+  {k:'단', name:'고기·생선·달걀·콩류', short:'고기·달걀·콩', color:'#F8C9C2'},
+  {k:'채', name:'채소·과일', color:'#CFE8C0'},
+  {k:'우', name:'우유·유제품', color:'#CFE0F5'},
+  {k:'유', name:'유지·당류', color:'#F5E07A'}
+];
+const BASES = {
+  square:{name:'네모 크래커', g:'곡', inside:(x,y)=>x>160&&x<340&&y>160&&y<340},
+  round:{name:'동그란 크래커', g:'곡', inside:(x,y)=>Math.hypot(x-250,y-250)<104},
+  bread:{name:'식빵', g:'곡', inside:(x,y)=>x>140&&x<360&&y>140&&y<360}
+};
+const SPREADS = {
+  none:{name:'안 바름'},
+  jam:{name:'딸기잼', g:'유', jar:'#B81A33', lid:'#C93A4A'},
+  cream:{name:'크림치즈', g:'우', jar:'#F4EFE2', lid:'#5E8FC9'},
+  mayo:{name:'마요네즈', g:'유', jar:'#F6EBC0', lid:'#E06B2C'}
+};
+const $ = id => document.getElementById(id);
+$('defs').innerHTML = DEFS;
+const chip = g => { const G=GROUPS.find(x=>x.k===g); return `<span class="chip" style="background:${G.color}">${G.short||G.name}</span>`; };
+const useT = (i,x,y,w,rot=0) => `<use href="#${TOPPINGS[i].id}" x="${x}" y="${y}" width="${w}" height="${w}" transform="rotate(${rot} ${x+w/2} ${y+w/2})"/>`;
+
+/* ---------- bins ---------- */
+function topBin(i){
+  const pile = [[4,16,44,-12],[44,14,44,14],[22,4,44,4],[18,22,46,-28],[40,24,44,30]].map(([x,y,w,r])=>useT(i,x,y,w,r)).join('');
+  return `<button class="bin" data-kind="top" data-key="${i}" aria-label="${TOPPINGS[i].name}"><div class="tray"><svg viewBox="0 0 92 70" aria-hidden="true">${pile}</svg></div><span class="lbl">${TOPPINGS[i].name}</span>${chip(TOPPINGS[i].g)}</button>`;
+}
+function baseBin(k){
+  return `<button class="bin" data-kind="base" data-key="${k}" aria-label="${BASES[k].name}"><div class="tray"><svg viewBox="120 120 260 230" aria-hidden="true"><g transform="translate(-20 -6)">${BASE_ART[k]}</g><g transform="translate(18 10)">${BASE_ART[k]}</g></svg></div><span class="lbl">${BASES[k].name}</span></button>`;
+}
+function jarSVG(k){
+  const S = SPREADS[k];
+  return `<svg viewBox="0 0 80 70" aria-hidden="true"><ellipse cx="40" cy="64" rx="24" ry="4" fill="#000" opacity=".2"/><rect x="18" y="16" width="44" height="48" rx="10" fill="${S.jar}" stroke="#8C8C8C" stroke-width="1.5"/><rect x="18" y="16" width="44" height="48" rx="10" fill="#fff" opacity=".18"/><rect x="22" y="20" width="6" height="38" rx="3" fill="#fff" opacity=".45"/><rect x="16" y="8" width="48" height="12" rx="4" fill="${S.lid}" stroke="#555" stroke-width="1"/><rect x="24" y="32" width="32" height="18" rx="3" fill="#FFFDF4" stroke="#C9C2B0" stroke-width="1"/><text x="40" y="45" text-anchor="middle" font-size="9" font-family="Gowun Dodum, sans-serif" font-weight="700" fill="#3A2A1A">${S.name}</text></svg>`;
+}
+function spreadBin(k){
+  return `<button class="bin" data-kind="spread" data-key="${k}" aria-label="${SPREADS[k].name} 바르기"><div class="tray">${jarSVG(k)}</div><span class="lbl">${SPREADS[k].name}</span>${chip(SPREADS[k].g)}</button>`;
+}
+function noneBin(){
+  return `<button class="bin" data-kind="spread" data-key="none" aria-label="바른 것 닦기"><div class="tray"><svg viewBox="0 0 80 70" aria-hidden="true"><rect x="16" y="18" width="48" height="40" rx="6" fill="#FFFFFF" stroke="#BFC6C8" stroke-width="1.5"/><path d="M16 30 L64 30 M16 44 L64 44" stroke="#D9E2E5" stroke-width="2"/><path d="M22 18 C30 10 50 10 58 18" fill="none" stroke="#BFC6C8" stroke-width="2"/></svg></div><span class="lbl">안 바름(닦기)</span></button>`;
+}
+
+/* ---------- drawing ---------- */
+function drawCanape(s, selIdx, mode){
+  let h = mode==='board' ? BOARD_BG : PLATE_BG;
+  if (s.base){
+    h += BASE_ART[s.base];
+    if (SPREAD_ART[s.spread]) h += SPREAD_ART[s.spread](s.base);
+  }
+  s.items.forEach((it,idx)=>{
+    const w = 80*it.s;
+    h += `<g data-idx="${idx}" style="cursor:grab"><rect x="${it.x-w/2}" y="${it.y-w/2}" width="${w}" height="${w}" fill="transparent"/>${useT(it.t, it.x-w/2, it.y-w/2, w, it.r)}`;
+    if (idx===selIdx) h += `<circle cx="${it.x}" cy="${it.y}" r="${w*0.56}" fill="none" stroke="#22402C" stroke-width="3" stroke-dasharray="7 5"/>`;
+    h += '</g>';
+  });
+  return h;
+}
+function groupsOf(s){
+  const used = new Set();
+  if (s.base) used.add(BASES[s.base].g);
+  if (SPREADS[s.spread].g) used.add(SPREADS[s.spread].g);
+  s.items.forEach(it=>used.add(TOPPINGS[it.t].g));
+  return used;
+}
+function toSVG(svgEl, cx, cy){
+  const r = svgEl.getBoundingClientRect(), vb = svgEl.viewBox.baseVal;
+  if (cx<r.left||cx>r.right||cy<r.top||cy>r.bottom) return null;
+  return {x: vb.x + (cx-r.left)*vb.width/r.width, y: vb.y + (cy-r.top)*vb.height/r.height};
+}
+
+/* ---------- drag from bins ---------- */
+const ghost = $('ghost');
+function ghostSVG(kind,key){
+  if (kind==='top') return `<svg viewBox="0 0 80 80" width="84" height="84"><use href="#${TOPPINGS[key].id}"/></svg>`;
+  if (kind==='base') return `<svg viewBox="130 130 240 240" width="84" height="84">${BASE_ART[key]}</svg>`;
+  return `<svg viewBox="0 0 80 70" width="84" height="74">${key==='none'?'':jarSVG(key)}</svg>`;
+}
+function enableBins(container, onTap, onDrop){
+  container.addEventListener('pointerdown', e=>{
+    const b = e.target.closest('.bin'); if (!b) return;
+    e.preventDefault();
+    const kind=b.dataset.kind, key = kind==='top' ? +b.dataset.key : b.dataset.key;
+    const sx=e.clientX, sy=e.clientY; let moved=false;
+    b.setPointerCapture(e.pointerId);
+    const move = ev=>{
+      if (!moved && Math.hypot(ev.clientX-sx, ev.clientY-sy) > 8){ moved=true; ghost.innerHTML=ghostSVG(kind,key); ghost.style.display='block'; }
+      if (moved) ghost.style.transform = `translate(${ev.clientX-42}px, ${ev.clientY-42}px)`;
+    };
+    const up = ev=>{
+      b.removeEventListener('pointermove',move); b.removeEventListener('pointerup',up); b.removeEventListener('pointercancel',up);
+      ghost.style.display='none';
+      if (ev.type==='pointercancel') return;
+      if (moved) onDrop(kind,key,ev.clientX,ev.clientY); else onTap(kind,key);
+    };
+    b.addEventListener('pointermove',move); b.addEventListener('pointerup',up); b.addEventListener('pointercancel',up);
+  });
+}
+
+/* ================= BUILDER ================= */
+const st = {base:'square', spread:'none', items:[], sel:-1, per:2, mem:4};
+const stage = $('stage');
+function buildControls(){
+  $('bases').innerHTML = Object.keys(BASES).map(baseBin).join('');
+  $('spreads').innerHTML = noneBin() + ['jam','cream','mayo'].map(spreadBin).join('');
+  $('palette').innerHTML = TOPPINGS.map((t,i)=>topBin(i)).join('');
+  document.querySelectorAll('#buildView .stepper button').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.k; st[k]=Math.max(1,Math.min(k==='per'?10:12,st[k]+ +b.dataset.d)); render();
+  });
+  const tap = (kind,key)=>{
+    if (kind==='base') st.base=key; else if (kind==='spread') st.spread=key;
+    else { const a=Math.random()*Math.PI*2, r=8+Math.random()*36; st.items.push({t:key,x:250+Math.cos(a)*r,y:250+Math.sin(a)*r,s:0.7,r:Math.round(Math.random()*40-20)}); st.sel=st.items.length-1; }
+    render();
+  };
+  const drop = (kind,key,cx,cy)=>{
+    const p = toSVG(stage,cx,cy); if (!p) return;
+    if (kind!=='top') return tap(kind,key);
+    st.items.push({t:key,x:p.x,y:p.y,s:0.7,r:Math.round(Math.random()*40-20)}); st.sel=st.items.length-1; render();
+  };
+  ['bases','spreads','palette'].forEach(id=>enableBins($(id),tap,drop));
+}
+function render(){
+  stage.innerHTML = drawCanape(st, st.sel, 'plate');
+  document.querySelectorAll('#bases .bin').forEach(b=>b.classList.toggle('on', b.dataset.key===st.base));
+  document.querySelectorAll('#spreads .bin').forEach(b=>b.classList.toggle('on', b.dataset.key===st.spread));
+  const tools = $('tools');
+  if (st.sel>=0 && st.items[st.sel]){
+    tools.innerHTML = `<b class="jua" style="font-size:18px">${TOPPINGS[st.items[st.sel].t].name}</b><button data-act="big">크게</button><button data-act="small">작게</button><button data-act="rot">돌리기</button><button data-act="del">빼기</button>`;
+    tools.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>act(b.dataset.act));
+  } else tools.innerHTML = '<span class="hint">재료 통을 누르거나 접시로 끌어다 놓아요. 올린 토핑은 끌어서 옮겨요.</span>';
+  const B = BASES[st.base];
+  const out = st.items.filter(it=>!B.inside(it.x,it.y)).length;
+  $('overflow').textContent = out ? `토핑 ${out}개가 크래커 밖으로 나갔어요. 진짜로 만들면 떨어져요!` : (st.items.length>6 ? '토핑이 너무 많아요. 한 입에 쏙 들어갈까요?' : '');
+  const used = groupsOf(st);
+  $('groups').innerHTML = GROUPS.map(G=>`<div class="g ${used.has(G.k)?'ok':''}"><b>${used.has(G.k)?'✓':'?'}</b>${G.name}</div>`).join('');
+  const miss = GROUPS.filter(G=>!used.has(G.k));
+  $('advice').innerHTML = !miss.length ? '<b>5가지 식품군을 모두 담았어요!</b> 균형 잡힌 건강 간식이에요.' :
+    miss.map(G=>{ const ex=TOPPINGS.filter(t=>t.g===G.k).slice(0,3).map(t=>t.name).join(', '); return `· <b>${G.name}</b>이(가) 빠졌어요. ${ex?ex+' 중 하나를 올려 볼까요?':''}`; }).join('<br>') + `<br><span class="hint">지금 ${used.size}가지 식품군이 들어 있어요.</span>`;
+  $('per').textContent=st.per; $('mem').textContent=st.mem;
+  const total = st.per*(st.mem+2);
+  $('formula').textContent = `${st.per}개 × (모둠원 ${st.mem}명 + 2) =`;
+  $('total').textContent = `카나페 ${total}개 필요`;
+  const counts = {}; st.items.forEach(it=>{const n=TOPPINGS[it.t].name; counts[n]=(counts[n]||0)+1;});
+  let shop = `<li>${B.name} ${total}${st.base==='bread'?'조각 (식빵 '+Math.ceil(total/4)+'장)':'개'}</li>`;
+  if (SPREAD_ART[st.spread]) shop += `<li>${SPREADS[st.spread].name}: 카나페 ${total}개에 바를 만큼</li>`;
+  shop += Object.entries(counts).map(([n,c])=>`<li>${n} ${c*total}조각 (카나페 1개에 ${c}조각)</li>`).join('');
+  $('shop').innerHTML = shop;
+}
+function act(a){
+  const it = st.items[st.sel]; if (!it) return;
+  if (a==='big') it.s=Math.min(1.4,it.s+0.1);
+  if (a==='small') it.s=Math.max(0.4,it.s-0.1);
+  if (a==='rot') it.r=(it.r+30)%360;
+  if (a==='del'){ st.items.splice(st.sel,1); st.sel=-1; }
+  render();
+}
+let drag=null;
+stage.addEventListener('pointerdown', e=>{
+  const g = e.target.closest('g[data-idx]');
+  if (!g){ st.sel=-1; render(); return; }
+  const idx=+g.dataset.idx, p=toSVG(stage,e.clientX,e.clientY), it=st.items[idx];
+  st.items.splice(idx,1); st.items.push(it); st.sel=st.items.length-1;
+  drag={dx:p.x-it.x, dy:p.y-it.y, pid:e.pointerId};
+  stage.setPointerCapture(e.pointerId); render();
+});
+stage.addEventListener('pointermove', e=>{
+  if (!drag||e.pointerId!==drag.pid) return;
+  const r=stage.getBoundingClientRect(), it=st.items[st.sel];
+  const x=(e.clientX-r.left)*500/r.width, y=(e.clientY-r.top)*500/r.height;
+  it.x=Math.max(20,Math.min(480,x-drag.dx)); it.y=Math.max(20,Math.min(480,y-drag.dy));
+  stage.innerHTML = drawCanape(st, st.sel, 'plate');
+});
+const endDrag=()=>{ if(drag){ drag=null; render(); } };
+stage.addEventListener('pointerup',endDrag); stage.addEventListener('pointercancel',endDrag);
+
+let cardURL=null;
+function makeCard(){
+  return new Promise(res=>{
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1000" viewBox="0 0 500 500"><defs>${DEFS}</defs>${drawCanape(st,-1,'plate')}</svg>`;
+    const img = new Image();
+    img.onload = ()=>{
+      const c=document.createElement('canvas'); c.width=1000; c.height=1300; const x=c.getContext('2d');
+      x.fillStyle='#F7F5EC'; x.fillRect(0,0,1000,1300); x.drawImage(img,0,150,1000,1000);
+      x.fillStyle='#22402C'; x.textAlign='center'; x.font='64px Jua, sans-serif';
+      x.fillText($('cname').value.trim()||'나만의 카나페',500,95);
+      x.font='36px "Gowun Dodum", sans-serif'; x.fillStyle='#3A4A3F'; x.fillText($('who').value.trim(),500,140);
+      const used=groupsOf(st); x.font='bold 34px "Gowun Dodum", sans-serif'; x.fillStyle='#22402C';
+      x.fillText(`식품군 ${used.size}/5 · `+GROUPS.filter(G=>used.has(G.k)).map(G=>G.name).join(', '),500,1210);
+      x.font='30px "Gowun Dodum", sans-serif'; x.fillText(`필요한 개수: ${st.per}개 × (${st.mem}명 + 2) = ${st.per*(st.mem+2)}개`,500,1260);
+      c.toBlob(b=>{ if(cardURL) URL.revokeObjectURL(cardURL); cardURL=URL.createObjectURL(b); res(cardURL); },'image/png');
+    };
+    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  });
+}
+$('finish').onclick=async()=>{ st.sel=-1; render(); $('doneImg').src=await makeCard(); $('done').classList.add('show'); };
+$('close').onclick=()=>$('done').classList.remove('show');
+$('save').onclick=()=>{ const a=document.createElement('a'); a.href=cardURL; a.download=(($('cname').value.trim()||'카나페')+'.png'); a.click(); };
+$('reset').onclick=()=>{ if(!confirm('모두 지우고 처음부터 다시 만들까요?')) return; Object.assign(st,{base:'square',spread:'none',items:[],sel:-1,per:2,mem:4}); $('who').value=''; $('cname').value=''; render(); };
+
+/* ================= GAME ================= */
+const hasBatchim = w => { const c=w.charCodeAt(w.length-1); return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28!==0; };
+const josa = (w,a,b) => w+(hasBatchim(w)?a:b);
+const listKo = arr => arr.map((w,i)=> i<arr.length-1 ? josa(w,'이랑','랑') : w).join(' ');
+const tops = s => s.items.map(it=>TOPPINGS[it.t].name);
+const cnt = (s,g) => s.items.filter(it=>TOPPINGS[it.t].g===g).length;
+const usesAny = (s,names) => names.find(n => tops(s).includes(n) || SPREADS[s.spread].name===n);
+const FRUITS = ['키위','딸기','바나나','블루베리','사과'];
+const few = (name,n) => n===0 ? `${josa(name,'이','가')} 없어요.` : `${josa(name,'이','가')} ${n}가지뿐이에요.`;
+
+function exact(base, spread, list){
+  const sp = SPREADS[spread];
+  const say = `${BASES[base].name}에 ` + (SPREAD_ART[spread] ? `${josa(sp.name,'을','를')} 바르고 ` : '아무것도 바르지 말고 ') + `${josa(listKo(list),'을','를')} 올려 주세요!`;
+  return {say, icons:list, check:s=>{
+    if (s.base!==base) return `바탕은 ${josa(BASES[base].name,'이에요','예요')}.`;
+    if (s.spread!==spread) return SPREAD_ART[spread] ? `${josa(sp.name,'을','를')} 발라야 해요.` : '아무것도 바르지 않아야 해요.';
+    const t = new Set(tops(s));
+    const miss = list.filter(n=>!t.has(n)); if (miss.length) return `${josa(miss[0],'이','가')} 빠졌어요.`;
+    const extra = [...t].filter(n=>!list.includes(n) && n!==sp.name); if (extra.length) return `${josa(extra[0],'은','는')} 주문하지 않았어요.`;
+    return null;
+  }};
+}
+const need = (say, fn) => ({say, check:fn});
+const all5 = s => { const u=groupsOf(s); const m=GROUPS.filter(G=>!u.has(G.k)); return m.length ? `${josa(m[0].name,'이','가')} 빠졌어요.` : null; };
+
+const STAGES = [
+  {name:'첫 손님', desc:'주문한 재료 그대로 만들기', time:90, goal:3,
+   tip:'카나페는 바탕(곡류) 위에 바르는 것과 토핑을 올려 만들어요. 주문을 끝까지 듣는 것이 첫걸음!',
+   pool:()=>[exact('square','cream',['오이','방울토마토']), exact('round','jam',['딸기','블루베리']), exact('bread','mayo',['참치','오이']), exact('square','cream',['연어']), exact('round','none',['슬라이스 치즈','햄']), exact('square','jam',['바나나','마시멜로'])]},
+  {name:'영양 주문', desc:'식품군 조건에 맞게 만들기', time:100, goal:4,
+   tip:'고기·생선·달걀·콩류는 몸을 만드는 단백질, 채소·과일은 비타민과 무기질을 줘요.',
+   pool:()=>[
+     need('단백질 듬뿍! 고기·생선·달걀·콩류를 2가지 넣어 주세요.', s=> cnt(s,'단')>=2 ? null : few('고기·생선·달걀·콩류',cnt(s,'단'))),
+     need('채소·과일을 3가지 넣어 주세요.', s=> cnt(s,'채')>=3 ? null : few('채소·과일',cnt(s,'채'))),
+     need('우유·유제품이 들어간 카나페 주세요!', s=> groupsOf(s).has('우') ? null : '우유·유제품이 없어요. 치즈나 크림치즈는 어때요?'),
+     need('생선이 들어간 카나페 주세요.', s=> usesAny(s,['참치','연어']) ? null : '생선(참치나 연어)이 없어요.'),
+     need('고기·생선·달걀·콩류와 채소·과일이 함께 있는 카나페요.', s=> cnt(s,'단')<1 ? '고기·생선·달걀·콩류가 없어요.' : cnt(s,'채')<1 ? '채소·과일이 없어요.' : null),
+     need('과일만 올린 상큼한 카나페요. 과일 2가지 이상!', s=>{ const f=tops(s).filter(n=>FRUITS.includes(n)).length; const other=tops(s).filter(n=>!FRUITS.includes(n)); return f<2 ? few('과일',f) : other.length ? `${josa(other[0],'은','는')} 과일이 아니에요.` : null; })
+   ]},
+  {name:'균형 카나페', desc:'5가지 식품군 모두 담기', time:100, goal:3,
+   tip:'5가지 식품군을 골고루 먹으면 균형 잡힌 식사가 돼요. 간식도 마찬가지예요!',
+   pool:()=>[
+     need('5가지 식품군이 모두 들어간 카나페 주세요!', all5),
+     need('5가지 식품군 모두! 그런데 토핑은 4개 이하로, 한 입에 쏙!', s=> all5(s) || (s.items.length>4 ? `토핑이 ${s.items.length}개예요. 4개 이하로!` : null)),
+     need('단 건 빼고 4가지 식품군을 넣어 주세요.', s=> groupsOf(s).has('유') ? '유지·당류가 들어 있어요.' : groupsOf(s).size>=4 ? null : `식품군이 ${groupsOf(s).size}가지뿐이에요.`),
+     need('식빵 말고 크래커로, 5가지 식품군 모두요.', s=> s.base==='bread' ? '식빵이 아니라 크래커로 만들어야 해요.' : all5(s))
+   ]},
+  {name:'알레르기 주의', desc:'못 먹는 재료를 빼고 만들기', time:110, goal:4,
+   tip:'알레르기가 있는 사람에게는 아주 적은 양도 위험할 수 있어요. 재료를 꼼꼼히 확인해요.',
+   pool:()=>[
+     need('달걀 알레르기가 있어요. 달걀과 마요네즈는 빼고, 고기·생선·달걀·콩류는 넣어 주세요.', s=>{ const u=usesAny(s,['삶은 달걀','마요네즈']); return u ? `${josa(u,'이','가')} 들어 있어요!` : cnt(s,'단')<1 ? '고기·생선·달걀·콩류가 없어요.' : null; }),
+     need('우유를 못 먹어요. 치즈, 크림치즈 없이 채소·과일 2가지를 넣어 주세요.', s=> groupsOf(s).has('우') ? '우유·유제품이 들어 있어요!' : cnt(s,'채')<2 ? '채소·과일이 2가지가 안 돼요.' : null),
+     need('딸기 알레르기가 있어요. 딸기와 딸기잼 없이 과일을 넣어 주세요.', s=>{ const u=usesAny(s,['딸기','딸기잼']); return u ? `${josa(u,'이','가')} 들어 있어요!` : tops(s).some(n=>FRUITS.includes(n)) ? null : '과일이 없어요.'; }),
+     need('고기를 안 먹어요. 햄, 참치, 연어, 게맛살 없이 4가지 식품군을 넣어 주세요.', s=>{ const u=usesAny(s,['햄','참치','연어','게맛살']); return u ? `${josa(u,'이','가')} 들어 있어요!` : groupsOf(s).size>=4 ? null : `식품군이 ${groupsOf(s).size}가지뿐이에요.`; }),
+     need('토마토를 못 먹어요. 방울토마토 없이 5가지 식품군 모두요.', s=> usesAny(s,['방울토마토']) ? '방울토마토가 들어 있어요!' : all5(s))
+   ]},
+  {name:'점심 러시', desc:'손님이 몰려와요! 섞인 주문을 빠르게', time:120, goal:6,
+   tip:'오늘 배운 것: 주문 확인 → 식품군 균형 → 알레르기 확인. 내일 실습에서도 그대로 해 봐요!',
+   pool:()=>[...STAGES[1].pool(), ...STAGES[2].pool(), ...STAGES[3].pool()]}
+];
+
+let memStars={};
+const store={ get(){ try{ return Object.assign({},memStars,JSON.parse(localStorage.getItem('canapeStars')||'{}')); }catch(e){ return Object.assign({},memStars); } },
+              set(v){ memStars=v; try{ localStorage.setItem('canapeStars',JSON.stringify(v)); }catch(e){} } };
+const g = {stage:0, queue:[], order:null, served:0, coins:0, timeLeft:0, timer:null, base:null, spread:'none', items:[], mood:'wait', fbT:null};
+
+function showMenu(){
+  $('gMenu').classList.remove('hidden'); $('gPlay').classList.add('hidden');
+  const stars=store.get();
+  $('stageList').innerHTML = STAGES.map((S,i)=>{
+    const locked = i>0 && !stars[i-1], sc=stars[i]||0;
+    return `<button class="stageCard" data-stage="${i}" ${locked?'disabled':''}><span class="num">${i+1}단계</span><h3>${S.name}</h3><p>${S.desc}<br>손님 ${S.goal}명 · ${S.time}초</p><span class="stars">${locked?'잠김':'★'.repeat(sc)+'☆'.repeat(3-sc)}</span></button>`;
+  }).join('');
+  $('stageList').querySelectorAll('[data-stage]').forEach(b=>b.onclick=()=>startStage(+b.dataset.stage));
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function startStage(i){
+  const S=STAGES[i]; let q=shuffle(S.pool()); while(q.length<S.goal) q=q.concat(shuffle(S.pool()));
+  Object.assign(g,{stage:i, queue:q.slice(0,S.goal), served:0, coins:0, timeLeft:S.time});
+  $('gMenu').classList.add('hidden'); $('gPlay').classList.remove('hidden'); $('gEnd').classList.remove('show');
+  $('gStageName').textContent=`${i+1}단계 · ${S.name}`;
+  nextOrder(); clearInterval(g.timer); g.timer=setInterval(tick,100);
+}
+const SKIN=['#F6D3B5','#EEC19A','#D9A27A','#F3CDB0','#E5B18C'], HAIR=['#3B2A20','#1F1A17','#7A4A2A','#5A3A2A','#2B2B33'], SHIRT=['#5E8FC9','#8DB596','#E9C46A','#D77A8C','#9A84C9'];
+function faceSVG(n, mood){
+  const sk=SKIN[n%5], hr=HAIR[(n*3)%5], sh=SHIRT[(n*2)%5], style=n%4;
+  const hair = [
+    `<path d="M20 40 C18 18 70 14 68 40 C64 30 56 26 44 26 C32 26 24 30 20 40 Z" fill="${hr}"/>`,
+    `<path d="M18 46 C14 16 74 14 70 46 L70 58 C66 50 66 40 62 34 C52 28 36 28 26 34 C22 40 22 50 18 58 Z" fill="${hr}"/>`,
+    `<path d="M20 40 C18 18 70 14 68 40 C64 30 56 26 44 26 C32 26 24 30 20 40 Z" fill="${hr}"/><circle cx="70" cy="30" r="9" fill="${hr}"/>`,
+    `<path d="M18 36 C20 14 68 14 70 36 Z" fill="${sh}"/><rect x="14" y="32" width="48" height="6" rx="3" fill="${sh}"/>`
+  ][style];
+  const mouth = mood==='happy' ? '<path d="M34 54 Q44 64 54 54" fill="#B23A3A" stroke="#5A2A1A" stroke-width="2"/>' : mood==='sad' ? '<path d="M35 58 Q44 51 53 58" fill="none" stroke="#5A2A1A" stroke-width="2.5" stroke-linecap="round"/>' : '<path d="M37 55 Q44 59 51 55" fill="none" stroke="#5A2A1A" stroke-width="2.5" stroke-linecap="round"/>';
+  const brow = mood==='sad' ? '<path d="M30 34 L38 37 M58 34 L50 37" stroke="#3A2A1A" stroke-width="2" stroke-linecap="round"/>' : '';
+  return `<rect x="0" y="0" width="88" height="88" rx="18" fill="#F3E7D2"/><path d="M14 88 C16 70 72 70 74 88 Z" fill="${sh}"/><rect x="38" y="62" width="12" height="10" fill="${sk}"/><ellipse cx="44" cy="44" rx="24" ry="25" fill="${sk}"/><ellipse cx="20" cy="46" rx="4" ry="6" fill="${sk}"/><ellipse cx="68" cy="46" rx="4" ry="6" fill="${sk}"/>${hair}${brow}<ellipse cx="35" cy="43" rx="3" ry="3.6" fill="#2A1E16"/><ellipse cx="53" cy="43" rx="3" ry="3.6" fill="#2A1E16"/><circle cx="36" cy="42" r="1" fill="#fff"/><circle cx="54" cy="42" r="1" fill="#fff"/><ellipse cx="29" cy="52" rx="4" ry="2.5" fill="#F29C9C" opacity=".55"/><ellipse cx="59" cy="52" rx="4" ry="2.5" fill="#F29C9C" opacity=".55"/>${mouth}`;
+}
+function nextOrder(){
+  g.order=g.queue[g.served]; g.mood='wait'; clearBoard();
+  $('gTicketNo').textContent=`주문서 No.${String(g.stage+1)}-${g.served+1}`;
+  $('gOrder').textContent=g.order.say;
+  $('gIcons').innerHTML=(g.order.icons||[]).map(n=>`<svg viewBox="0 0 80 80" aria-hidden="true"><use href="#${TOPPINGS[TIDX[n]].id}"/></svg>`).join('');
+  drawFace();
+}
+function drawFace(){ $('gFace').innerHTML=faceSVG(g.stage*7+g.served*3+1, g.mood); }
+function tick(){ g.timeLeft=Math.max(0,g.timeLeft-0.1); renderTime(); if(g.timeLeft<=0) endStage(false); }
+function renderTime(){ const pct=g.timeLeft/STAGES[g.stage].time*100; $('gTimeBar').firstElementChild.style.width=pct+'%'; $('gTimeBar').classList.toggle('low',pct<25); }
+function clearBoard(){ g.base=null; g.spread='none'; g.items=[]; renderGame(); }
+function renderGame(){
+  const s={base:g.base, spread:g.spread, items:g.items};
+  $('gStage').innerHTML=drawCanape(s,-1,'board');
+  document.querySelectorAll('#gBases .bin').forEach(b=>b.classList.toggle('on',b.dataset.key===g.base));
+  document.querySelectorAll('#gSpreads .bin').forEach(b=>b.classList.toggle('on',g.base && b.dataset.key===g.spread && g.spread!=='none'));
+  $('gServed').textContent=`손님 ${g.served}/${STAGES[g.stage].goal}`;
+  $('gCoins').textContent=`코인 ${g.coins}`;
+}
+const SLOTS=[[250,250],[212,214],[288,286],[288,214],[212,286],[250,206]];
+function gAdd(kind,key,p){
+  if (kind==='base'){ g.base=key; return renderGame(); }
+  if (!g.base) return fb('bad','먼저 크래커를 도마에 올려요.');
+  if (kind==='spread'){ g.spread=key; return renderGame(); }
+  if (g.items.length>=6) return fb('bad','토핑은 6개까지만!');
+  if (p && !BASES[g.base].inside(p.x,p.y)) return fb('bad','크래커 위에 올려 주세요.');
+  const pos = p || {x:SLOTS[g.items.length][0], y:SLOTS[g.items.length][1]};
+  g.items.push({t:key, x:pos.x, y:pos.y, s:0.62, r:Math.round(Math.random()*50-25)});
+  renderGame();
+}
+function serve(){
+  if (!g.base) return fb('bad','도마가 비어 있어요.');
+  const s={base:g.base, spread:g.spread, items:g.items};
+  const why=g.order.check(s);
+  if (why){ g.timeLeft=Math.max(0,g.timeLeft-5); renderTime(); g.mood='sad'; drawFace(); fb('bad',`앗! ${why} (−5초)`); if(g.timeLeft<=0) endStage(false); return; }
+  const bonus=Math.round(g.timeLeft); g.coins+=100+bonus; g.served++;
+  g.mood='happy'; drawFace(); fb('good',`맛있어요! +${100+bonus}`);
+  if (g.served>=STAGES[g.stage].goal){ renderGame(); clearInterval(g.timer); setTimeout(()=>endStage(true),700); return; }
+  setTimeout(()=>{ if(!$('gPlay').classList.contains('hidden')) nextOrder(); },700);
+}
+function fb(cls,msg){ const f=$('feedback'); f.className=cls+' show'; f.textContent=msg; clearTimeout(g.fbT); g.fbT=setTimeout(()=>f.classList.remove('show'),2200); }
+function endStage(win){
+  clearInterval(g.timer);
+  const S=STAGES[g.stage]; let n=0;
+  if (win){ const r=g.timeLeft/S.time; n=r>=0.5?3:r>=0.25?2:1; const all=store.get(); all[g.stage]=Math.max(all[g.stage]||0,n); store.set(all); }
+  $('gEndTitle').textContent = win ? `${g.stage+1}단계 성공!` : '시간이 다 됐어요';
+  $('gEndStars').textContent = win ? '★'.repeat(n)+'☆'.repeat(3-n) : '';
+  $('gEndMsg').textContent = win ? `손님 ${S.goal}명에게 모두 대접했어요. 코인 ${g.coins}개, 남은 시간 ${Math.round(g.timeLeft)}초` : `손님 ${g.served}/${S.goal}명에게 대접했어요. 다시 도전해 봐요!`;
+  $('gEndTip').textContent='영양 한마디: '+S.tip;
+  $('gNext').classList.toggle('hidden', !win || g.stage>=STAGES.length-1);
+  $('gEnd').classList.add('show');
+}
+function buildGame(){
+  $('gBases').innerHTML=Object.keys(BASES).map(baseBin).join('');
+  $('gSpreads').innerHTML=['jam','cream','mayo'].map(spreadBin).join('');
+  $('gPalette').innerHTML=TOPPINGS.map((t,i)=>topBin(i)).join('');
+  const tap=(kind,key)=>gAdd(kind,key,null);
+  const drop=(kind,key,cx,cy)=>{ const p=toSVG($('gStage'),cx,cy); if(!p) return; gAdd(kind,key, kind==='top'?p:null); };
+  ['gBaseSpread','gPalette'].forEach(id=>enableBins($(id),tap,drop));
+  $('gServe').onclick=serve; $('gClear').onclick=clearBoard;
+  $('gQuit').onclick=()=>{ clearInterval(g.timer); showMenu(); };
+  $('gRetry').onclick=()=>startStage(g.stage);
+  $('gNext').onclick=()=>startStage(g.stage+1);
+  $('gToMenu').onclick=()=>{ $('gEnd').classList.remove('show'); showMenu(); };
+}
+
+$('tabBuild').onclick=()=>{ clearInterval(g.timer); $('buildView').classList.remove('hidden'); $('gameView').classList.add('hidden'); $('gEnd').classList.remove('show'); $('tabBuild').classList.add('on'); $('tabGame').classList.remove('on'); };
+$('tabGame').onclick=()=>{ $('buildView').classList.add('hidden'); $('gameView').classList.remove('hidden'); $('tabGame').classList.add('on'); $('tabBuild').classList.remove('on'); showMenu(); };
+
+buildControls(); render(); buildGame();
+</script>
+</body>
+</html>
