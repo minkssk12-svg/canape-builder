@@ -88,7 +88,9 @@ main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:18px;
 .ticket .t1{font-size:13px;color:#8A7B5E}
 .ticket .t2{font-family:'Jua',sans-serif;font-size:21px;line-height:1.35;color:#2E2A22}
 .ticket .icons{display:flex;gap:4px;margin-top:4px}
-.ticket .icons svg{width:34px;height:34px}
+.ticket .icons{flex-wrap:wrap}
+.ticket .ic{display:inline-flex;align-items:center;gap:2px;background:#F3EAD6;border-radius:10px;padding:2px 8px 2px 2px;font-family:'Jua',sans-serif;font-size:18px;color:#3A2A1A}
+.ticket .icons svg{width:36px;height:36px}
 #gFace{width:88px;height:88px;flex:0 0 88px}
 .boardWrap{position:relative}
 #feedback{position:absolute;left:50%;top:12px;transform:translateX(-50%);font-family:'Jua',sans-serif;font-size:22px;padding:6px 16px;border-radius:999px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity .2s}
@@ -421,13 +423,13 @@ function buildControls(){
   });
   const tap = (kind,key)=>{
     if (kind==='base') st.base=key; else if (kind==='spread') st.spread=key;
-    else { const a=Math.random()*Math.PI*2, r=8+Math.random()*36; st.items.push({t:key,x:250+Math.cos(a)*r,y:250+Math.sin(a)*r,s:0.7,r:Math.round(Math.random()*40-20)}); st.sel=st.items.length-1; }
+    else { const a=Math.random()*Math.PI*2, r=8+Math.random()*36; st.items.push({t:key,x:250+Math.cos(a)*r,y:250+Math.sin(a)*r,s:1.1,r:Math.round(Math.random()*40-20)}); st.sel=st.items.length-1; }
     render();
   };
   const drop = (kind,key,cx,cy)=>{
     const p = toSVG(stage,cx,cy); if (!p) return;
     if (kind!=='top') return tap(kind,key);
-    st.items.push({t:key,x:p.x,y:p.y,s:0.7,r:Math.round(Math.random()*40-20)}); st.sel=st.items.length-1; render();
+    st.items.push({t:key,x:p.x,y:p.y,s:1.1,r:Math.round(Math.random()*40-20)}); st.sel=st.items.length-1; render();
   };
   ['bases','spreads','palette'].forEach(id=>enableBins($(id),tap,drop));
 }
@@ -460,8 +462,8 @@ function render(){
 }
 function act(a){
   const it = st.items[st.sel]; if (!it) return;
-  if (a==='big') it.s=Math.min(1.4,it.s+0.1);
-  if (a==='small') it.s=Math.max(0.4,it.s-0.1);
+  if (a==='big') it.s=Math.min(1.8,it.s+0.12);
+  if (a==='small') it.s=Math.max(0.6,it.s-0.12);
   if (a==='rot') it.r=(it.r+30)%360;
   if (a==='del'){ st.items.splice(st.sel,1); st.sel=-1; }
   render();
@@ -519,31 +521,43 @@ const usesAny = (s,names) => names.find(n => tops(s).includes(n) || SPREADS[s.sp
 const FRUITS = ['키위','딸기','바나나','블루베리','사과'];
 const few = (name,n) => n===0 ? `${josa(name,'이','가')} 없어요.` : `${josa(name,'이','가')} ${n}가지뿐이에요.`;
 
+const UNIT = {'슬라이스 치즈':'장','햄':'장','연어':'조각'};
+const unit = n => UNIT[n]||'개';
 function exact(base, spread, list){
   const sp = SPREADS[spread];
-  const say = `${BASES[base].name}에 ` + (SPREAD_ART[spread] ? `${josa(sp.name,'을','를')} 바르고 ` : '아무것도 바르지 말고 ') + `${josa(listKo(list),'을','를')} 올려 주세요!`;
+  const phrase = listKo(list.map(([n,c])=>`${n} ${c}${unit(n)}`));
+  const say = `${BASES[base].name}에 ` + (SPREAD_ART[spread] ? `${josa(sp.name,'을','를')} 바르고 ` : '아무것도 바르지 말고 ') + `${josa(phrase,'을','를')} 올려 주세요!`;
   return {say, icons:list, check:s=>{
     if (s.base!==base) return `바탕은 ${josa(BASES[base].name,'이에요','예요')}.`;
     if (s.spread!==spread) return SPREAD_ART[spread] ? `${josa(sp.name,'을','를')} 발라야 해요.` : '아무것도 바르지 않아야 해요.';
-    const t = new Set(tops(s));
-    const miss = list.filter(n=>!t.has(n)); if (miss.length) return `${josa(miss[0],'이','가')} 빠졌어요.`;
-    const extra = [...t].filter(n=>!list.includes(n) && n!==sp.name); if (extra.length) return `${josa(extra[0],'은','는')} 주문하지 않았어요.`;
+    const c = {}; tops(s).forEach(n=>c[n]=(c[n]||0)+1);
+    for (const [n,k] of list){
+      const have=c[n]||0;
+      if (!have) return `${josa(n,'이','가')} 빠졌어요.`;
+      if (have!==k) return `${josa(n,'은','는')} ${josa(k+unit(n),'이에요','예요')}. 지금 ${have}${unit(n)} 올렸어요.`;
+    }
+    const extra = Object.keys(c).filter(n=>!list.some(([m])=>m===n) && n!==sp.name);
+    if (extra.length) return `${josa(extra[0],'은','는')} 주문하지 않았어요.`;
     return null;
   }};
 }
 const need = (say, fn) => ({say, check:fn});
+const NUT = {곡:['탄수화물','곡류'], 단:['단백질','고기·생선·달걀·콩류'], 채:['비타민','채소·과일'], 우:['칼슘','우유·유제품'], 유:['지방','유지·당류']};
+const nwhere = k => `${josa(NUT[k][0],'은','는')} ${NUT[k][1]}에 많아요.`;
+const nmiss = k => `${josa(NUT[k][0],'이','가')} 없어요. ` + nwhere(k);
 const all5 = s => { const u=groupsOf(s); const m=GROUPS.filter(G=>!u.has(G.k)); return m.length ? `${josa(m[0].name,'이','가')} 빠졌어요.` : null; };
 
 const STAGES = [
   {name:'첫 손님', desc:'주문한 재료 그대로 만들기', time:90, goal:3,
    tip:'카나페는 바탕(곡류) 위에 바르는 것과 토핑을 올려 만들어요. 주문을 끝까지 듣는 것이 첫걸음!',
-   pool:()=>[exact('square','cream',['오이','방울토마토']), exact('round','jam',['딸기','블루베리']), exact('bread','mayo',['참치','오이']), exact('square','cream',['연어']), exact('round','none',['슬라이스 치즈','햄']), exact('square','jam',['바나나','마시멜로'])]},
+   pool:()=>[exact('square','cream',[['오이',2],['방울토마토',1]]), exact('round','jam',[['딸기',1],['블루베리',2]]), exact('bread','mayo',[['참치',2],['오이',2]]), exact('square','cream',[['연어',1]]), exact('round','none',[['슬라이스 치즈',1],['햄',1]]), exact('square','jam',[['바나나',2],['마시멜로',1]]), exact('bread','cream',[['딸기',2],['키위',2]]), exact('round','mayo',[['삶은 달걀',1],['파프리카',1],['게맛살',1]])]},
   {name:'영양 주문', desc:'식품군 조건에 맞게 만들기', time:100, goal:4,
    tip:'고기·생선·달걀·콩류는 몸을 만드는 단백질, 채소·과일은 비타민과 무기질을 줘요.',
    pool:()=>[
      need('단백질 듬뿍! 고기·생선·달걀·콩류를 2가지 넣어 주세요.', s=> cnt(s,'단')>=2 ? null : few('고기·생선·달걀·콩류',cnt(s,'단'))),
      need('채소·과일을 3가지 넣어 주세요.', s=> cnt(s,'채')>=3 ? null : few('채소·과일',cnt(s,'채'))),
      need('우유·유제품이 들어간 카나페 주세요!', s=> groupsOf(s).has('우') ? null : '우유·유제품이 없어요. 치즈나 크림치즈는 어때요?'),
+     need('오이를 딱 3개 올리고, 고기·생선·달걀·콩류도 1개 넣어 주세요.', s=>{ const o=tops(s).filter(n=>n==='오이').length; return o!==3 ? `오이가 ${o}개예요. 딱 3개!` : cnt(s,'단')<1 ? '고기·생선·달걀·콩류가 없어요.' : null; }),
      need('생선이 들어간 카나페 주세요.', s=> usesAny(s,['참치','연어']) ? null : '생선(참치나 연어)이 없어요.'),
      need('고기·생선·달걀·콩류와 채소·과일이 함께 있는 카나페요.', s=> cnt(s,'단')<1 ? '고기·생선·달걀·콩류가 없어요.' : cnt(s,'채')<1 ? '채소·과일이 없어요.' : null),
      need('과일만 올린 상큼한 카나페요. 과일 2가지 이상!', s=>{ const f=tops(s).filter(n=>FRUITS.includes(n)).length; const other=tops(s).filter(n=>!FRUITS.includes(n)); return f<2 ? few('과일',f) : other.length ? `${josa(other[0],'은','는')} 과일이 아니에요.` : null; })
@@ -553,6 +567,7 @@ const STAGES = [
    pool:()=>[
      need('5가지 식품군이 모두 들어간 카나페 주세요!', all5),
      need('5가지 식품군 모두! 그런데 토핑은 4개 이하로, 한 입에 쏙!', s=> all5(s) || (s.items.length>4 ? `토핑이 ${s.items.length}개예요. 4개 이하로!` : null)),
+     need('5가지 식품군 모두! 토핑은 딱 3개만 올려 주세요.', s=> all5(s) || (s.items.length!==3 ? `토핑이 ${s.items.length}개예요. 딱 3개!` : null)),
      need('단 건 빼고 4가지 식품군을 넣어 주세요.', s=> groupsOf(s).has('유') ? '유지·당류가 들어 있어요.' : groupsOf(s).size>=4 ? null : `식품군이 ${groupsOf(s).size}가지뿐이에요.`),
      need('식빵 말고 크래커로, 5가지 식품군 모두요.', s=> s.base==='bread' ? '식빵이 아니라 크래커로 만들어야 해요.' : all5(s))
    ]},
@@ -565,9 +580,20 @@ const STAGES = [
      need('고기를 안 먹어요. 햄, 참치, 연어, 게맛살 없이 4가지 식품군을 넣어 주세요.', s=>{ const u=usesAny(s,['햄','참치','연어','게맛살']); return u ? `${josa(u,'이','가')} 들어 있어요!` : groupsOf(s).size>=4 ? null : `식품군이 ${groupsOf(s).size}가지뿐이에요.`; }),
      need('토마토를 못 먹어요. 방울토마토 없이 5가지 식품군 모두요.', s=> usesAny(s,['방울토마토']) ? '방울토마토가 들어 있어요!' : all5(s))
    ]},
-  {name:'점심 러시', desc:'손님이 몰려와요! 섞인 주문을 빠르게', time:120, goal:6,
-   tip:'오늘 배운 것: 주문 확인 → 식품군 균형 → 알레르기 확인. 내일 실습에서도 그대로 해 봐요!',
-   pool:()=>[...STAGES[1].pool(), ...STAGES[2].pool(), ...STAGES[3].pool()]}
+  {name:'영양소 손님', desc:'영양소 이름만 말하는 손님! 어떤 식품군인지 떠올리기', time:120, goal:4,
+   tip:'탄수화물은 곡류, 단백질은 고기·생선·달걀·콩류, 비타민은 채소·과일, 칼슘(무기질)은 우유·유제품, 지방은 유지·당류에 많아요.',
+   pool:()=>[
+     need('뼈와 이를 튼튼하게! 칼슘이 많은 재료를 넣어 주세요.', s=> groupsOf(s).has('우') ? null : nmiss('우')),
+     need('몸을 만드는 단백질을 2개 올려 주세요.', s=> cnt(s,'단')>=2 ? null : (cnt(s,'단') ? `단백질 재료가 ${cnt(s,'단')}개뿐이에요. ` + nwhere('단') : nmiss('단'))),
+     need('감기 기운이 있어요. 비타민이 많은 재료를 3개 올려 주세요.', s=> cnt(s,'채')>=3 ? null : (cnt(s,'채') ? `비타민 재료가 ${cnt(s,'채')}개뿐이에요. ` + nwhere('채') : nmiss('채'))),
+     need('지방은 빼 주세요! 대신 단백질이랑 비타민은 꼭 넣어 주세요.', s=> groupsOf(s).has('유') ? '지방이 들어 있어요. ' + nwhere('유') : cnt(s,'단')<1 ? nmiss('단') : cnt(s,'채')<1 ? nmiss('채') : null),
+     need('운동하고 왔어요! 탄수화물, 단백질, 칼슘이 필요해요.', s=> cnt(s,'단')<1 ? nmiss('단') : !groupsOf(s).has('우') ? nmiss('우') : null),
+     need('탄수화물, 단백질, 지방, 비타민, 칼슘을 모두 담아 주세요!', s=>{ const u=groupsOf(s); const m=['곡','단','유','채','우'].find(k=>!u.has(k)); return m ? nmiss(m) : null; }),
+     need('눈 건강에 좋은 비타민 A! 주황색 채소를 2개 올려 주세요.', s=>{ const c=tops(s).filter(n=>n==='당근').length; return c>=2 ? null : `주황색 채소(당근)가 ${c}개예요. 2개!`; })
+   ]},
+  {name:'점심 러시', desc:'손님이 몰려와요! 섞인 주문을 빠르게', time:130, goal:6,
+   tip:'오늘 배운 것: 주문 확인 → 개수 확인 → 식품군·영양소 균형 → 알레르기 확인. 내일 실습에서도 그대로 해 봐요!',
+   pool:()=>[...STAGES[0].pool().slice(0,3), ...STAGES[1].pool(), ...STAGES[2].pool(), ...STAGES[3].pool(), ...STAGES[4].pool()]}
 ];
 
 let memStars={};
@@ -609,7 +635,7 @@ function nextOrder(){
   g.order=g.queue[g.served]; g.mood='wait'; clearBoard();
   $('gTicketNo').textContent=`주문서 No.${String(g.stage+1)}-${g.served+1}`;
   $('gOrder').textContent=g.order.say;
-  $('gIcons').innerHTML=(g.order.icons||[]).map(n=>`<svg viewBox="0 0 80 80" aria-hidden="true"><use href="#${TOPPINGS[TIDX[n]].id}"/></svg>`).join('');
+  $('gIcons').innerHTML=(g.order.icons||[]).map(([n,c])=>`<span class="ic"><svg viewBox="0 0 80 80" aria-hidden="true"><use href="#${TOPPINGS[TIDX[n]].id}"/></svg>×${c}</span>`).join('');
   drawFace();
 }
 function drawFace(){ $('gFace').innerHTML=faceSVG(g.stage*7+g.served*3+1, g.mood); }
@@ -624,7 +650,7 @@ function renderGame(){
   $('gServed').textContent=`손님 ${g.served}/${STAGES[g.stage].goal}`;
   $('gCoins').textContent=`코인 ${g.coins}`;
 }
-const SLOTS=[[250,250],[212,214],[288,286],[288,214],[212,286],[250,206]];
+const SLOTS=[[250,250],[205,207],[295,293],[295,207],[205,293],[250,198]];
 function gAdd(kind,key,p){
   if (kind==='base'){ g.base=key; return renderGame(); }
   if (!g.base) return fb('bad','먼저 크래커를 도마에 올려요.');
@@ -632,7 +658,7 @@ function gAdd(kind,key,p){
   if (g.items.length>=6) return fb('bad','토핑은 6개까지만!');
   if (p && !BASES[g.base].inside(p.x,p.y)) return fb('bad','크래커 위에 올려 주세요.');
   const pos = p || {x:SLOTS[g.items.length][0], y:SLOTS[g.items.length][1]};
-  g.items.push({t:key, x:pos.x, y:pos.y, s:0.62, r:Math.round(Math.random()*50-25)});
+  g.items.push({t:key, x:pos.x, y:pos.y, s:1.0, r:Math.round(Math.random()*50-25)});
   renderGame();
 }
 function serve(){
